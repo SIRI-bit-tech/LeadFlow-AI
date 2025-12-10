@@ -1,12 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, users, verifications } from '@/lib/db';
 import { eq } from 'drizzle-orm';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import crypto from 'crypto';
-
-// Rate limiting - simple in-memory store (in production, use Redis or database)
-const resetAttempts = new Map<string, { count: number; lastAttempt: number }>();
-const RATE_LIMIT_WINDOW = 15 * 60 * 1000; // 15 minutes
-const MAX_ATTEMPTS = 3;
 
 export async function POST(request: NextRequest) {
   try {
@@ -30,27 +26,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Rate limiting check
-    const clientIP = request.headers.get('x-forwarded-for') || 'unknown';
-    const rateLimitKey = `${clientIP}:${email}`;
-    const now = Date.now();
-    const attempts = resetAttempts.get(rateLimitKey);
-
-    if (attempts) {
-      // Clean up old attempts
-      if (now - attempts.lastAttempt > RATE_LIMIT_WINDOW) {
-        resetAttempts.delete(rateLimitKey);
-      } else if (attempts.count >= MAX_ATTEMPTS) {
-        return NextResponse.json(
-          { error: 'Too many reset attempts. Please try again later.' },
-          { status: 429 }
-        );
-      }
+    // Database-backed rate limiting (serverless-compatible)
+    const clientIP = request.headers.get('x-forwarded-for') || 
+                     request.headers.get('x-real-ip') || 
+                     'unknown';
+    const rateLimitIdentifier = `${clientIP}:${email}`;
+    
+    const rateLimitResult = await checkRateLimit(rateLimitIdentifier, RATE_LIMITS.PASSWORD_RESET);
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: rateLimitResult.error },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': RATE_LIMITS.PASSWORD_RESET.maxAttempts.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.resetTime.toISOString(),
+          }
+        }
+      );
     }
-
-    // Update rate limiting counter
-    const currentAttempts = attempts ? attempts.count + 1 : 1;
-    resetAttempts.set(rateLimitKey, { count: currentAttempts, lastAttempt: now });
 
     // Always return success to prevent email enumeration
     // But only actually send reset email if user exists
@@ -63,16 +59,22 @@ export async function POST(request: NextRequest) {
       const resetToken = crypto.randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour expiry
 
-      // Clean up any existing reset tokens for this user
-      await db.delete(verifications).where(
-        eq(verifications.identifier, email)
-      );
+      // Atomically clean up existing reset tokens and store new token
+      // This prevents race conditions between delete and insert operations
+      await db.transaction(async (tx) => {
+        // Clean up any existing reset tokens for this user (but not rate limit records)
+        // Rate limit records have identifier pattern: password_reset:ip:email
+        // Reset tokens have identifier pattern: email (no prefix)
+        await tx.delete(verifications).where(
+          eq(verifications.identifier, email)
+        );
 
-      // Store reset token
-      await db.insert(verifications).values({
-        identifier: email,
-        value: resetToken,
-        expiresAt,
+        // Store reset token
+        await tx.insert(verifications).values({
+          identifier: email,
+          value: resetToken,
+          expiresAt,
+        });
       });
 
       // TODO: Send reset email with token
