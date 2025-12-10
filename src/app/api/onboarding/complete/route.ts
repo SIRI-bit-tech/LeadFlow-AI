@@ -1,20 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db } from '@/lib/db';
-import { users } from '@/db/schema';
+import { db, users } from '@/lib/db';
 import { eq } from 'drizzle-orm';
-import { auth } from '@/lib/auth';
+import { getSession } from '@/lib/session';
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers
-    });
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
@@ -30,15 +23,14 @@ export async function POST(request: NextRequest) {
         goals: JSON.stringify(goals),
         integrations: JSON.stringify(integrations),
         onboardingCompleted: true,
-        updatedAt: new Date()
+        updatedAt: new Date(),
       })
       .where(eq(users.id, session.user.id));
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       success: true,
-      message: 'Onboarding completed successfully'
+      message: 'Onboarding completed successfully',
     });
-
   } catch (error) {
     console.error('Onboarding completion error:', error);
     return NextResponse.json(

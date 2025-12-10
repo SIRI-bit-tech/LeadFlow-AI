@@ -1,29 +1,27 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { db } from "./db";
+import { db, users, sessions, accounts, verifications } from "./db";
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
+    schema: {
+      user: users,
+      session: sessions,
+      account: accounts,
+      verification: verifications,
+    }
   }),
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: true,
-  },
-  socialProviders: {
-    google: {
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    },
-    microsoft: {
-      clientId: process.env.MICROSOFT_CLIENT_ID!,
-      clientSecret: process.env.MICROSOFT_CLIENT_SECRET!,
-    },
+    requireEmailVerification: false,
   },
   session: {
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // 1 day
   },
+  secret: process.env.BETTER_AUTH_SECRET!,
+  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
 });
 
 export type Session = typeof auth.$Infer.Session;

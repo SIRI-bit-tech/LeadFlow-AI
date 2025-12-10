@@ -31,7 +31,12 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (data.success) {
-        window.location.href = '/dashboard';
+        // Check if user needs onboarding
+        if (data.user.onboardingCompleted) {
+          window.location.href = '/dashboard';
+        } else {
+          window.location.href = '/setup';
+        }
       } else {
         setError(data.error || 'Login failed');
       }
