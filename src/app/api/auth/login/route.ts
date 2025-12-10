@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, users } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import { createSession } from '@/lib/session';
+import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
@@ -16,6 +17,28 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Email and password are required' },
         { status: 400 }
+      );
+    }
+
+    // Rate limiting for login attempts
+    const clientIP = request.headers.get('x-forwarded-for') || 
+                     request.headers.get('x-real-ip') || 
+                     'unknown';
+    const rateLimitIdentifier = `${clientIP}:${email}`;
+    
+    const rateLimitResult = await checkRateLimit(rateLimitIdentifier, RATE_LIMITS.LOGIN_ATTEMPTS);
+    
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { error: rateLimitResult.error },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': RATE_LIMITS.LOGIN_ATTEMPTS.maxAttempts.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.resetTime.toISOString(),
+          }
+        }
       );
     }
 
