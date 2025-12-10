@@ -1,7 +1,6 @@
 import { AppSidebar } from '@/components/layout/app-sidebar';
-import { auth } from '@/lib/auth';
-import { headers } from 'next/headers';
-import { db, users, workspaces } from '@/lib/db';
+import { getSession } from '@/lib/session';
+import { db, users } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 
 async function getUserData(userId: string) {
@@ -24,16 +23,35 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const session = await auth.api.getSession({ headers: await headers() });
+  const session = await getSession();
   
   if (!session) {
-    return <div>Please log in</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Please log in to continue</p>
+          <a href="/login" className="text-blue-600 hover:underline">Go to Login</a>
+        </div>
+      </div>
+    );
   }
 
   const userData = await getUserData(session.user.id);
   
   if (!userData) {
     return <div>User not found</div>;
+  }
+
+  // Check if user needs to complete onboarding
+  if (!userData.onboardingCompleted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600 mb-4">Please complete your setup</p>
+          <a href="/setup" className="text-blue-600 hover:underline">Complete Setup</a>
+        </div>
+      </div>
+    );
   }
 
   const user = {

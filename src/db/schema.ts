@@ -1,15 +1,15 @@
 import { pgTable, text, timestamp, integer, jsonb, boolean, uuid, varchar, decimal } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
-// Users table
-export const users = pgTable('users', {
+// Users table (Better Auth compatible)
+export const users = pgTable('user', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: varchar('email', { length: 255 }).notNull().unique(),
   name: varchar('name', { length: 255 }).notNull(),
-  avatar: text('avatar'),
+  image: text('image'),
+  emailVerified: boolean('emailVerified').default(false),
   role: varchar('role', { length: 50 }).notNull().default('sales_rep'),
   workspaceId: uuid('workspace_id').notNull(),
-  emailVerified: boolean('email_verified').default(false),
   // Onboarding fields
   companyName: varchar('company_name', { length: 255 }),
   industry: varchar('industry', { length: 100 }),
@@ -17,8 +17,45 @@ export const users = pgTable('users', {
   goals: text('goals'), // JSON string of selected goals
   integrations: text('integrations'), // JSON string of selected integrations
   onboardingCompleted: boolean('onboarding_completed').default(false),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+});
+
+// Better Auth required tables
+export const sessions = pgTable('session', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('userId').notNull(),
+  expiresAt: timestamp('expiresAt').notNull(),
+  token: text('token').notNull().unique(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+  ipAddress: text('ipAddress'),
+  userAgent: text('userAgent'),
+});
+
+export const accounts = pgTable('account', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('userId').notNull(),
+  accountId: text('accountId').notNull(),
+  providerId: text('providerId').notNull(),
+  accessToken: text('accessToken'),
+  refreshToken: text('refreshToken'),
+  idToken: text('idToken'),
+  accessTokenExpiresAt: timestamp('accessTokenExpiresAt'),
+  refreshTokenExpiresAt: timestamp('refreshTokenExpiresAt'),
+  scope: text('scope'),
+  password: text('password'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+});
+
+export const verifications = pgTable('verification', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  identifier: text('identifier').notNull(),
+  value: text('value').notNull(),
+  expiresAt: timestamp('expiresAt').notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
 });
 
 // Workspaces table
@@ -114,6 +151,22 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   workspace: one(workspaces, {
     fields: [users.workspaceId],
     references: [workspaces.id],
+  }),
+  sessions: many(sessions),
+  accounts: many(accounts),
+}));
+
+export const sessionsRelations = relations(sessions, ({ one }) => ({
+  user: one(users, {
+    fields: [sessions.userId],
+    references: [users.id],
+  }),
+}));
+
+export const accountsRelations = relations(accounts, ({ one }) => ({
+  user: one(users, {
+    fields: [accounts.userId],
+    references: [users.id],
   }),
 }));
 

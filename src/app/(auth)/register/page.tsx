@@ -61,7 +61,8 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (data.success) {
-        window.location.href = '/verify-email?email=' + encodeURIComponent(formData.email);
+        // New users should go through onboarding
+        window.location.href = '/setup';
       } else {
         setError(data.error || 'Registration failed');
       }
