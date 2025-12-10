@@ -8,6 +8,7 @@ export const users = pgTable('user', {
   name: varchar('name', { length: 255 }).notNull(),
   image: text('image'),
   emailVerified: boolean('emailVerified').default(false),
+  passwordHash: text('password_hash'),
   role: varchar('role', { length: 50 }).notNull().default('sales_rep'),
   workspaceId: uuid('workspace_id').notNull(),
   // Onboarding fields

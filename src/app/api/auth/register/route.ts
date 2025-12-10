@@ -2,18 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, users, workspaces } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import { createSession } from '@/lib/session';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { name, email, password, company } = body;
 
-    console.log('Registration attempt:', { name, email, company });
+
 
     // Validate required fields
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: 'Name, email, and password are required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate password strength
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: 'Password must be at least 8 characters long' },
         { status: 400 }
       );
     }
@@ -30,37 +39,61 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate a temporary UUID for workspace creation
-    const tempUserId = crypto.randomUUID();
+    // Hash password with error handling
+    const saltRounds = 12;
+    let passwordHash: string;
+    try {
+      passwordHash = await bcrypt.hash(password, saltRounds);
+    } catch (hashError) {
+      console.error('Password hashing failed:', hashError);
+      return NextResponse.json(
+        { error: 'Failed to process password' },
+        { status: 500 }
+      );
+    }
 
-    // Create workspace first with temp owner
-    const [workspace] = await db.insert(workspaces).values({
-      name: company || `${name}'s Workspace`,
-      ownerId: tempUserId,
-    }).returning();
+    // Create user and workspace in a transaction to ensure data consistency
+    const result = await db.transaction(async (tx) => {
+      try {
+        // Create user first
+        const [user] = await tx.insert(users).values({
+          name,
+          email,
+          passwordHash,
+          workspaceId: crypto.randomUUID(), // Temporary workspace ID
+          emailVerified: true, // Skip verification for now
+        }).returning();
 
-    // Create user
-    const [user] = await db.insert(users).values({
-      name,
-      email,
-      workspaceId: workspace.id,
-      emailVerified: true, // Skip verification for now
-    }).returning();
+        // Create workspace with the real user as owner
+        const [workspace] = await tx.insert(workspaces).values({
+          name: company || `${name}'s Workspace`,
+          ownerId: user.id,
+        }).returning();
 
-    // Update workspace with real owner
-    await db.update(workspaces)
-      .set({ ownerId: user.id })
-      .where(eq(workspaces.id, workspace.id));
+        // Update user with the real workspace ID
+        const [updatedUser] = await tx.update(users)
+          .set({ workspaceId: workspace.id })
+          .where(eq(users.id, user.id))
+          .returning();
+
+        return { user: updatedUser, workspace };
+      } catch (txError) {
+        console.error('Transaction failed:', txError);
+        throw txError; // This will trigger rollback
+      }
+    });
+
+    const { user } = result;
 
     // Create secure session
-    const sessionToken = await createSession({
+    await createSession({
       id: user.id,
       name: user.name,
       email: user.email,
       workspaceId: user.workspaceId,
     });
 
-    console.log('User created successfully:', user.id);
+
 
     return NextResponse.json({
       success: true,

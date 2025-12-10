@@ -1,6 +1,6 @@
 import { cookies } from 'next/headers';
 import { db, users, sessions } from '@/lib/db';
-import { eq, and, gt } from 'drizzle-orm';
+import { eq, and, gt, lt } from 'drizzle-orm';
 import { SignJWT, jwtVerify } from 'jose';
 
 export interface SessionUser {
@@ -144,10 +144,14 @@ export async function destroySession(): Promise<void> {
   }
 }
 
-export async function refreshSession(sessionToken: string): Promise<void> {
+export async function refreshSession(
+  sessionToken: string,
+  setCookie: (name: string, value: string, options: any) => void
+): Promise<void> {
   try {
     const newExpiresAt = new Date(Date.now() + SESSION_DURATION * 1000);
     
+    // Update session in database
     await db
       .update(sessions)
       .set({ 
@@ -155,18 +159,58 @@ export async function refreshSession(sessionToken: string): Promise<void> {
         updatedAt: new Date(),
       })
       .where(eq(sessions.token, sessionToken));
+
+    // Get session data to create new JWT
+    const session = await db.query.sessions.findFirst({
+      where: eq(sessions.token, sessionToken),
+      with: {
+        user: true,
+      },
+    });
+
+    if (!session || !session.user) {
+      throw new Error('Session not found');
+    }
+
+    // Create new JWT token with updated expiration
+    const newJwtToken = await new SignJWT({ 
+      sessionToken,
+      userId: session.user.id,
+      workspaceId: session.user.workspaceId 
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime(Math.floor(Date.now() / 1000) + SESSION_DURATION)
+      .sign(JWT_SECRET);
+
+    // Update client cookie with new JWT
+    setCookie('auth-token', newJwtToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: SESSION_DURATION,
+      path: '/',
+    });
   } catch (error) {
     console.error('Error refreshing session:', error);
+    throw error;
   }
+}
+
+// Convenience function for Next.js API routes
+export async function refreshSessionWithCookies(sessionToken: string): Promise<void> {
+  const cookieStore = await cookies();
+  
+  await refreshSession(sessionToken, (name: string, value: string, options: any) => {
+    cookieStore.set(name, value, options);
+  });
 }
 
 // Cleanup expired sessions (run this periodically)
 export async function cleanupExpiredSessions(): Promise<void> {
   try {
     await db.delete(sessions).where(
-      and(
-        eq(sessions.expiresAt, new Date())
-      )
+      lt(sessions.expiresAt, new Date())
     );
   } catch (error) {
     console.error('Error cleaning up expired sessions:', error);
