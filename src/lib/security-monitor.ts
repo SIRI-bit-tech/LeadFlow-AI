@@ -69,7 +69,7 @@ export function anonymizeIdentifier(identifier: string): string {
       let maskedLocal;
       if (localPart.length <= 2) {
         maskedLocal = '***';
-      } else if (localPart.length <= 4) {
+      } else if (localPart.length <= 3) {
         maskedLocal = localPart.substring(0, 1) + '***';
       } else {
         maskedLocal = localPart.substring(0, 2) + '***';
@@ -126,10 +126,16 @@ export const ANONYMIZE_TEST_CASES = {
     expected: '192.168.1.1:***@example.com'
   },
   
-  // Medium email local parts
+  // Medium email local parts (3 chars)
   mediumLocal: {
     input: '192.168.1.1:abc@example.com',
     expected: '192.168.1.1:a***@example.com'
+  },
+  
+  // 4-character local parts (should show 2 chars)
+  fourCharLocal: {
+    input: '192.168.1.1:user@example.com',
+    expected: '192.168.1.1:us***@example.com'
   },
   
   // Invalid email format (no @)
