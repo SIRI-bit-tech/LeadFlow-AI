@@ -33,9 +33,10 @@ export async function POST(request: NextRequest) {
 
     // Check if user has a password hash (new users) or is legacy user
     if (!user.passwordHash) {
-      // Legacy user without password hash - they need to reset their password
+      // Legacy user without password hash - use generic error to prevent email enumeration
+      // Note: This prevents attackers from discovering valid email addresses in our system
       return NextResponse.json(
-        { error: 'Please reset your password to continue' },
+        { error: 'Invalid email or password' },
         { status: 401 }
       );
     }
