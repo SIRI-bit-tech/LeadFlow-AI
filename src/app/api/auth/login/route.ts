@@ -2,13 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db, users } from '@/lib/db';
 import { eq } from 'drizzle-orm';
 import { createSession } from '@/lib/session';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { email, password } = body;
 
-    console.log('Login attempt:', { email });
+
 
     // Validate required fields
     if (!email || !password) {
@@ -30,18 +31,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For now, we'll skip password verification since we're not hashing passwords yet
-    // In production, you'd verify the hashed password here
+    // Check if user has a password hash (new users) or is legacy user
+    if (!user.passwordHash) {
+      // Legacy user without password hash - they need to reset their password
+      return NextResponse.json(
+        { error: 'Please reset your password to continue' },
+        { status: 401 }
+      );
+    }
+
+    // Verify password
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    
+    if (!isPasswordValid) {
+      return NextResponse.json(
+        { error: 'Invalid email or password' },
+        { status: 401 }
+      );
+    }
 
     // Create secure session
-    const sessionToken = await createSession({
+    await createSession({
       id: user.id,
       name: user.name,
       email: user.email,
       workspaceId: user.workspaceId,
     });
 
-    console.log('User logged in successfully:', user.id);
+
 
     return NextResponse.json({
       success: true,

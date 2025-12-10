@@ -1,7 +1,7 @@
-import { getSession } from '@/lib/session';
+import { getSession, SessionUser } from '@/lib/session';
 import { redirect } from 'next/navigation';
 
-export async function checkOnboarding() {
+export async function checkOnboarding(): Promise<{ user: SessionUser }> {
   const session = await getSession();
   
   if (!session) {
