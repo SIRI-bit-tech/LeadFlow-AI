@@ -25,8 +25,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user's workspace ID
-    const workspaceId = session.user.workspaceId || 'default-workspace';
+    // Get user's workspace ID from database
+    const { users } = await import('@/lib/db');
+    const { db } = await import('@/lib/db');
+    const { eq } = await import('drizzle-orm');
+    
+    const user = await db.query.users.findFirst({
+      where: eq(users.id, session.user.id),
+    });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const workspaceId = user.workspaceId;
     
     const meetingId = await CalendarService.scheduleMeeting(
       leadId,
