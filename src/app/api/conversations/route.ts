@@ -1,24 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, users } from '@/lib/db';
-import { auth } from '@/lib/auth';
-import { eq } from 'drizzle-orm';
+import { authenticateApiRequest, isAuthError } from '@/lib/api-auth';
 import { getActiveConversations } from '@/services/conversation';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await authenticateApiRequest();
+    if (isAuthError(authResult)) {
+      return authResult.error;
     }
 
-    // Get user's workspace ID from database
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, session.user.id),
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+    const workspaceId = authResult.session.user.workspaceId;
 
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
@@ -27,7 +18,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
 
-    const conversationsData = await getActiveConversations(user.workspaceId);
+    const conversationsData = await getActiveConversations(workspaceId);
 
     // Apply filters
     let filteredConversations = conversationsData;

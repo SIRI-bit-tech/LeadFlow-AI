@@ -169,7 +169,7 @@ export default function LeadsPage() {
               <div>
                 <p className="text-sm text-gray-600">Avg. Score</p>
                 <p className="text-2xl font-bold">
-                  {Math.round(leads.reduce((acc, lead) => acc + lead.score, 0) / leads.length)}
+                  {leads.length > 0 ? Math.round(leads.reduce((acc, lead) => acc + lead.score, 0) / leads.length) : 0}
                 </p>
               </div>
               <div className="text-sm text-gray-500">/100</div>

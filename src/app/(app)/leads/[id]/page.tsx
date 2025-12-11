@@ -22,18 +22,24 @@ import {
 import Link from 'next/link';
 import { formatDate, getLeadStatusColor, getClassificationColor } from '@/lib/utils';
 
-export default function LeadDetailPage({ params }: { params: { id: string } }) {
+export default function LeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [lead, setLead] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [leadId, setLeadId] = useState<string>('');
 
   useEffect(() => {
-    fetchLead();
-  }, [params.id]);
+    const initializePage = async () => {
+      const { id } = await params;
+      setLeadId(id);
+      fetchLead(id);
+    };
+    initializePage();
+  }, [params]);
 
-  const fetchLead = async () => {
+  const fetchLead = async (id: string) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/leads/${params.id}`);
+      const response = await fetch(`/api/leads/${id}`);
       if (response.ok) {
         const data = await response.json();
         setLead(data.data);

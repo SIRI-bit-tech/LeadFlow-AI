@@ -16,7 +16,6 @@ interface AIProviderData {
   availableProviders: string[];
   providerStatus: ProviderStatus[];
   totalProviders: number;
-  hasBackup: boolean;
 }
 
 export function AIProviderStatus() {
@@ -30,9 +29,16 @@ export function AIProviderStatus() {
       if (response.ok) {
         const result = await response.json();
         setData(result);
+      } else if (response.status === 401) {
+        // Handle authentication error silently - don't expose to user
+        setData(null);
+      } else {
+        // Handle other errors
+        setData(null);
       }
     } catch (error) {
-      console.error('Failed to fetch AI provider status:', error);
+      // Don't log sensitive error details in production
+      setData(null);
     } finally {
       setLoading(false);
     }
@@ -49,9 +55,13 @@ export function AIProviderStatus() {
 
       if (response.ok) {
         await fetchProviderStatus(); // Refresh status
+      } else if (response.status === 401) {
+        // Handle authentication error silently
+        setData(null);
       }
     } catch (error) {
-      console.error('Failed to switch AI provider:', error);
+      // Don't expose error details
+      setData(null);
     } finally {
       setSwitching(false);
     }
@@ -85,12 +95,21 @@ export function AIProviderStatus() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-red-500" />
+            <AlertCircle className="w-5 h-5 text-orange-500" />
             AI Providers
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-red-600">Failed to load AI provider status</p>
+          <p className="text-gray-600">Failed to load AI provider status</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={fetchProviderStatus}
+            className="mt-2"
+          >
+            <RefreshCw className="w-3 h-3 mr-1" />
+            Retry
+          </Button>
         </CardContent>
       </Card>
     );
@@ -107,7 +126,6 @@ export function AIProviderStatus() {
         </CardTitle>
         <CardDescription>
           {data.totalProviders} provider{data.totalProviders !== 1 ? 's' : ''} configured
-          {data.hasBackup && ' with automatic fallback'}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -170,20 +188,7 @@ export function AIProviderStatus() {
           </div>
         </div>
 
-        {/* Backup Status */}
-        {data.hasBackup && (
-          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-center gap-2 text-blue-800">
-              <CheckCircle className="w-4 h-4" />
-              <span className="text-sm font-medium">
-                Automatic Fallback Enabled
-              </span>
-            </div>
-            <p className="text-xs text-blue-600 mt-1">
-              If the current provider fails, the system will automatically switch to the next available provider.
-            </p>
-          </div>
-        )}
+
       </CardContent>
     </Card>
   );

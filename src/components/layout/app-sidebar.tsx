@@ -54,14 +54,12 @@ export function AppSidebar({ user, workspace, notifications = 0 }: AppSidebarPro
       href: '/leads',
       icon: Users,
       current: currentPath.startsWith('/leads'),
-      badge: 12, // This would come from API
     },
     {
       name: 'Conversations',
       href: '/conversations',
       icon: MessageSquare,
       current: currentPath.startsWith('/conversations'),
-      badge: 3,
     },
     {
       name: 'Meetings',
@@ -156,14 +154,7 @@ export function AppSidebar({ user, workspace, notifications = 0 }: AppSidebarPro
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
                 {!collapsed && (
-                  <>
-                    <span className="flex-1">{item.name}</span>
-                    {item.badge && (
-                      <Badge variant="secondary" className="ml-auto">
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </>
+                  <span className="flex-1">{item.name}</span>
                 )}
               </Link>
             );

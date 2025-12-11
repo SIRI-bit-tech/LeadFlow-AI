@@ -1,26 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { db, leads, conversations, meetings } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { authenticateApiRequest, isAuthError } from '@/lib/api-auth';
 import { eq, and, gte, count, avg, desc } from 'drizzle-orm';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await authenticateApiRequest();
+    if (isAuthError(authResult)) {
+      return authResult.error;
     }
 
-    // Get user's workspace ID from database
-    const { users } = await import('@/lib/db');
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, session.user.id),
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const workspaceId = user.workspaceId;
+    // Get user's workspace ID from session
+    const workspaceId = authResult.session.user.workspaceId;
     const now = new Date();
     const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
     const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -99,7 +90,7 @@ export async function GET(request: NextRequest) {
 
     const totalLeads = totalLeadsResult.count || 0;
     const qualifiedLeads = qualifiedLeadsResult.count || 0;
-    const averageScore = Math.round(Number(averageScoreResult.avg) || 0);
+    const averageScore = averageScoreResult.avg ? Math.round(Number(averageScoreResult.avg)) : 0;
     const activeConversations = activeConversationsResult.count || 0;
     const meetingsScheduled = meetingsScheduledResult.count || 0;
 

@@ -1,25 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, leads } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { authenticateApiRequest, isAuthError } from '@/lib/api-auth';
 import { eq, desc, and, like, or, count } from 'drizzle-orm';
 import { validateEmail, sanitizeInput } from '@/lib/utils';
 import { createConversation } from '@/services/conversation';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // Get user's workspace ID from database
-    const { users } = await import('@/lib/db');
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, session.user.id),
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    const authResult = await authenticateApiRequest();
+    if (isAuthError(authResult)) {
+      return authResult.error;
     }
 
     const { searchParams } = new URL(request.url);
@@ -30,7 +20,8 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const offset = (page - 1) * limit;
 
-    let whereConditions = [eq(leads.workspaceId, user.workspaceId)];
+    const workspaceId = authResult.session.user.workspaceId;
+    let whereConditions = [eq(leads.workspaceId, workspaceId)];
 
     if (status) {
       whereConditions.push(eq(leads.status, status));
@@ -94,20 +85,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await authenticateApiRequest();
+    if (isAuthError(authResult)) {
+      return authResult.error;
     }
 
-    // Get user's workspace ID from database
-    const { users } = await import('@/lib/db');
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, session.user.id),
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+    const workspaceId = authResult.session.user.workspaceId;
 
     const body = await request.json();
     const {
@@ -133,7 +116,7 @@ export async function POST(request: NextRequest) {
     const existingLead = await db.query.leads.findFirst({
       where: and(
         eq(leads.email, email),
-        eq(leads.workspaceId, user.workspaceId)
+        eq(leads.workspaceId, workspaceId)
       ),
     });
 
@@ -153,12 +136,12 @@ export async function POST(request: NextRequest) {
       companySize: companySize ? sanitizeInput(companySize) : null,
       phone: phone ? sanitizeInput(phone) : null,
       source,
-      workspaceId: user.workspaceId,
+      workspaceId: workspaceId,
       metadata,
     }).returning();
 
     // Create conversation for the lead
-    const conversation = await createConversation(newLead.id, user.workspaceId);
+    const conversation = await createConversation(newLead.id, workspaceId);
 
     return NextResponse.json({
       success: true,

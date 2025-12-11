@@ -34,8 +34,12 @@ export function useAnalytics(timeRange: '7d' | '30d' | '90d' = '30d') {
       if (!response.ok) {
         throw new Error('Failed to fetch analytics');
       }
-      const analyticsData = await response.json();
-      setData(analyticsData);
+      const result = await response.json();
+      if (result.success) {
+        setData(result.data);
+      } else {
+        throw new Error(result.error || 'Failed to fetch analytics');
+      }
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');

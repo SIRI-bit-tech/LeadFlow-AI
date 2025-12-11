@@ -1,24 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { db, meetings, leads, users } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { db, meetings, leads } from '@/lib/db';
+import { authenticateApiRequest, isAuthError } from '@/lib/api-auth';
 import { eq, and, gte, lte, desc } from 'drizzle-orm';
 import { sendEmail, emailTemplates } from '@/lib/email';
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await authenticateApiRequest();
+    if (isAuthError(authResult)) {
+      return authResult.error;
     }
 
-    // Get user's workspace ID from database
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, session.user.id),
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+    const workspaceId = authResult.session.user.workspaceId;
 
     const { searchParams } = new URL(request.url);
     const leadId = searchParams.get('leadId');
@@ -30,7 +23,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0');
 
     // Apply filters
-    const conditions = [eq(meetings.workspaceId, user.workspaceId)];
+    const conditions = [eq(meetings.workspaceId, workspaceId)];
 
     if (leadId) {
       conditions.push(eq(meetings.leadId, leadId));
@@ -100,19 +93,12 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await authenticateApiRequest();
+    if (isAuthError(authResult)) {
+      return authResult.error;
     }
 
-    // Get user's workspace ID from database
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, session.user.id),
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+    const workspaceId = authResult.session.user.workspaceId;
 
     const body = await request.json();
     const {
@@ -141,7 +127,7 @@ export async function POST(request: NextRequest) {
       .where(
         and(
           eq(leads.id, leadId),
-          eq(leads.workspaceId, user.workspaceId)
+          eq(leads.workspaceId, workspaceId)
         )
       );
 
@@ -157,7 +143,7 @@ export async function POST(request: NextRequest) {
       .insert(meetings)
       .values({
         leadId,
-        workspaceId: user.workspaceId,
+        workspaceId: workspaceId,
         title,
         type,
         scheduledAt: new Date(scheduledAt),

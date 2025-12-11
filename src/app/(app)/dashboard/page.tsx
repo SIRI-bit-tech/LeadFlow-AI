@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense } from 'react';
+
 import { MetricsCard } from '@/components/dashboard/metrics-card';
 import { RecentActivity } from '@/components/dashboard/recent-activity';
 import { AIProviderStatus } from '@/components/dashboard/ai-provider-status';
@@ -60,7 +60,7 @@ function DashboardMetrics({ metrics }: { metrics: any }) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <MetricsCard
         title="Total Leads"
-        value={metrics.totalLeads.toLocaleString()}
+        value={(metrics.totalLeads || 0).toLocaleString()}
         change={{
           value: metrics.totalLeadsChange || 0,
           type: (metrics.totalLeadsChange || 0) >= 0 ? 'increase' : 'decrease',
@@ -70,7 +70,7 @@ function DashboardMetrics({ metrics }: { metrics: any }) {
       />
       <MetricsCard
         title="Qualified Leads"
-        value={metrics.qualifiedLeads}
+        value={metrics.qualifiedLeads || 0}
         change={{
           value: metrics.qualifiedLeadsChange || 0,
           type: (metrics.qualifiedLeadsChange || 0) >= 0 ? 'increase' : 'decrease',
@@ -80,7 +80,7 @@ function DashboardMetrics({ metrics }: { metrics: any }) {
       />
       <MetricsCard
         title="Conversion Rate"
-        value={`${metrics.conversionRate}%`}
+        value={`${metrics.conversionRate || 0}%`}
         change={{
           value: metrics.conversionRateChange || 0,
           type: (metrics.conversionRateChange || 0) >= 0 ? 'increase' : 'decrease',
@@ -90,7 +90,7 @@ function DashboardMetrics({ metrics }: { metrics: any }) {
       />
       <MetricsCard
         title="Avg. Lead Score"
-        value={metrics.averageScore}
+        value={metrics.averageScore || 0}
         change={{
           value: metrics.averageScoreChange || 0,
           type: (metrics.averageScoreChange || 0) >= 0 ? 'increase' : 'decrease',
@@ -118,7 +118,7 @@ function QuickActions({ metrics }: { metrics: any }) {
                 </div>
                 <div className="text-left">
                   <p className="font-medium">Review New Leads</p>
-                  <p className="text-sm text-gray-500">23 leads waiting</p>
+                  <p className="text-sm text-gray-500">{metrics.totalLeads || 0} total leads</p>
                 </div>
               </div>
               <ArrowRight className="w-4 h-4 ml-auto" />
@@ -133,7 +133,7 @@ function QuickActions({ metrics }: { metrics: any }) {
                 </div>
                 <div className="text-left">
                   <p className="font-medium">Active Chats</p>
-                  <p className="text-sm text-gray-500">{metrics.activeConversations} ongoing</p>
+                  <p className="text-sm text-gray-500">{metrics.activeConversations || 0} ongoing</p>
                 </div>
               </div>
               <ArrowRight className="w-4 h-4 ml-auto" />
@@ -148,7 +148,7 @@ function QuickActions({ metrics }: { metrics: any }) {
                 </div>
                 <div className="text-left">
                   <p className="font-medium">Today's Meetings</p>
-                  <p className="text-sm text-gray-500">5 scheduled</p>
+                  <p className="text-sm text-gray-500">{metrics.meetingsScheduled || 0} scheduled</p>
                 </div>
               </div>
               <ArrowRight className="w-4 h-4 ml-auto" />
@@ -213,7 +213,7 @@ function QuickActions({ metrics }: { metrics: any }) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {metrics.leadsBySource?.map((source, index) => (
+              {metrics.leadsBySource?.map((source) => (
                 <div key={source.source} className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">{source.source}</span>
                   <div className="flex items-center space-x-2">
@@ -241,7 +241,7 @@ function QuickActions({ metrics }: { metrics: any }) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {metrics.leadsByStatus?.map((status, index) => (
+              {metrics.leadsByStatus?.map((status) => (
                 <div key={status.status} className="flex items-center justify-between">
                   <span className="text-sm text-gray-600 capitalize">{status.status}</span>
                   <span className="text-sm font-medium">{status.count}</span>
