@@ -1,33 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, leads } from '@/lib/db';
-import { auth } from '@/lib/auth';
+import { authenticateApiRequest, isAuthError } from '@/lib/api-auth';
 import { eq, and } from 'drizzle-orm';
 import { sanitizeInput } from '@/lib/utils';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await authenticateApiRequest();
+    if (isAuthError(authResult)) {
+      return authResult.error;
     }
 
-    // Get user's workspace ID from database
-    const { users } = await import('@/lib/db');
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, session.user.id),
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+    const { id } = await params;
+    const workspaceId = authResult.session.user.workspaceId;
 
     const lead = await db.query.leads.findFirst({
       where: and(
-        eq(leads.id, params.id),
-        eq(leads.workspaceId, user.workspaceId)
+        eq(leads.id, id),
+        eq(leads.workspaceId, workspaceId)
       ),
       with: {
         score: true,
@@ -66,23 +59,16 @@ export async function GET(
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await authenticateApiRequest();
+    if (isAuthError(authResult)) {
+      return authResult.error;
     }
 
-    // Get user's workspace ID from database
-    const { users } = await import('@/lib/db');
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, session.user.id),
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+    const { id } = await params;
+    const workspaceId = authResult.session.user.workspaceId;
 
     const body = await request.json();
     const {
@@ -99,8 +85,8 @@ export async function PATCH(
     // Verify lead exists and belongs to workspace
     const existingLead = await db.query.leads.findFirst({
       where: and(
-        eq(leads.id, params.id),
-        eq(leads.workspaceId, user.workspaceId)
+        eq(leads.id, id),
+        eq(leads.workspaceId, workspaceId)
       ),
     });
 
@@ -124,7 +110,7 @@ export async function PATCH(
 
     const [updatedLead] = await db.update(leads)
       .set(updateData)
-      .where(eq(leads.id, params.id))
+      .where(eq(leads.id, id))
       .returning();
 
     return NextResponse.json({
@@ -142,29 +128,22 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await auth.api.getSession({ headers: request.headers });
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const authResult = await authenticateApiRequest();
+    if (isAuthError(authResult)) {
+      return authResult.error;
     }
 
-    // Get user's workspace ID from database
-    const { users } = await import('@/lib/db');
-    const user = await db.query.users.findFirst({
-      where: eq(users.id, session.user.id),
-    });
-
-    if (!user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 });
-    }
+    const { id } = await params;
+    const workspaceId = authResult.session.user.workspaceId;
 
     // Verify lead exists and belongs to workspace
     const existingLead = await db.query.leads.findFirst({
       where: and(
-        eq(leads.id, params.id),
-        eq(leads.workspaceId, user.workspaceId)
+        eq(leads.id, id),
+        eq(leads.workspaceId, workspaceId)
       ),
     });
 
@@ -173,7 +152,7 @@ export async function DELETE(
     }
 
     // Delete lead (cascade will handle related records)
-    await db.delete(leads).where(eq(leads.id, params.id));
+    await db.delete(leads).where(eq(leads.id, id));
 
     return NextResponse.json({
       success: true,

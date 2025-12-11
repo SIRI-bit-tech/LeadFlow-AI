@@ -1,18 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { AIService, getAvailableProviders } from '@/lib/ai';
-import { auth } from '@/lib/auth';
+import { authenticateApiRequest, isAuthError } from '@/lib/api-auth';
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers
-    });
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const authResult = await authenticateApiRequest();
+    if (isAuthError(authResult)) {
+      return authResult.error;
     }
 
     const availableProviders = getAvailableProviders();
@@ -21,8 +15,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       availableProviders: availableProviders.map(p => p.name),
       providerStatus,
-      totalProviders: availableProviders.length,
-      hasBackup: availableProviders.length > 1
+      totalProviders: availableProviders.length
     });
 
   } catch (error) {
@@ -36,15 +29,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await auth.api.getSession({
-      headers: request.headers
-    });
-
-    if (!session?.user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const authResult = await authenticateApiRequest();
+    if (isAuthError(authResult)) {
+      return authResult.error;
     }
 
     const { providerName } = await request.json();
