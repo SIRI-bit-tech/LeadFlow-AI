@@ -6,6 +6,7 @@
     constructor(config = {}) {
       this.config = {
         apiUrl: config.apiUrl || 'https://your-domain.com',
+        workspaceId: config.workspaceId || 'default-workspace',
         position: config.position || 'bottom-right',
         primaryColor: config.primaryColor || '#0A4D68',
         accentColor: config.accentColor || '#FF6B6B',
@@ -381,7 +382,9 @@
           },
           body: JSON.stringify({
             message,
-            conversationId: this.conversationId
+            conversationId: this.conversationId,
+            leadData: this.extractLeadData(),
+            workspaceId: this.config.workspaceId
           })
         });
         
@@ -421,7 +424,13 @@
       messages.scrollTop = messages.scrollHeight;
       
       // Store message
-      this.messages.push({ text, sender, timestamp: new Date() });
+      const messageData = { text, sender, timestamp: new Date() };
+      this.messages.push(messageData);
+      
+      // Call callback if set (for framework integration)
+      if (this.onMessageCallback) {
+        this.onMessageCallback(messageData);
+      }
     }
 
     showTyping() {
@@ -441,10 +450,49 @@
       textarea.style.height = 'auto';
       textarea.style.height = Math.min(textarea.scrollHeight, 80) + 'px';
     }
+
+    extractLeadData() {
+      // Extract any lead data from the conversation or config
+      const leadData = {};
+      
+      // Check if we have any lead info from previous messages
+      if (this.messages.length > 0) {
+        // Simple extraction - in a real implementation, you'd use NLP
+        const userMessages = this.messages.filter(m => m.sender === 'user');
+        const allText = userMessages.map(m => m.text).join(' ').toLowerCase();
+        
+        // Extract email if mentioned
+        const emailMatch = allText.match(/[\w\.-]+@[\w\.-]+\.\w+/);
+        if (emailMatch) {
+          leadData.email = emailMatch[0];
+        }
+        
+        // Extract company if mentioned
+        const companyPatterns = [
+          /(?:work at|from|company is|at) ([A-Za-z0-9\s]+?)(?:\.|,|$)/,
+          /(?:i'm with|we're) ([A-Za-z0-9\s]+?)(?:\.|,|$)/
+        ];
+        
+        for (const pattern of companyPatterns) {
+          const match = allText.match(pattern);
+          if (match && match[1].trim().length > 2) {
+            leadData.company = match[1].trim();
+            break;
+          }
+        }
+      }
+      
+      return leadData;
+    }
   }
 
   // Auto-initialize widget when DOM is ready
   function initWidget() {
+    // Prevent multiple initializations
+    if (window.LeadFlowWidget && window.LeadFlowWidget.initialized) {
+      return;
+    }
+
     // Get configuration from script tag
     const script = document.querySelector('script[src*="widget.js"]');
     const config = {};
@@ -462,7 +510,21 @@
     }
     
     // Initialize widget
-    window.LeadFlowWidget = new LeadFlowWidget(config);
+    const widget = new LeadFlowWidget(config);
+    widget.initialized = true;
+    window.LeadFlowWidget = widget;
+    
+    // Expose global methods for framework integration
+    window.LeadFlowAPI = {
+      open: () => widget.openChat(),
+      close: () => widget.closeChat(),
+      toggle: () => widget.toggleChat(),
+      isOpen: () => widget.isOpen,
+      sendMessage: (message) => widget.addMessage(message, 'user'),
+      onMessage: (callback) => {
+        widget.onMessageCallback = callback;
+      }
+    };
   }
 
   // Initialize when DOM is ready
@@ -470,6 +532,17 @@
     document.addEventListener('DOMContentLoaded', initWidget);
   } else {
     initWidget();
+  }
+
+  // Export for module systems (if available)
+  if (typeof module !== 'undefined' && module.exports) {
+    module.exports = LeadFlowWidget;
+  }
+  
+  if (typeof define === 'function' && define.amd) {
+    define([], function() {
+      return LeadFlowWidget;
+    });
   }
 
 })();

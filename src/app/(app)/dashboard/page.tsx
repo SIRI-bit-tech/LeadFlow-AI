@@ -175,12 +175,7 @@ function QuickActions({ metrics }: { metrics: any }) {
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </Button>
-          <Link href="/leads/new">
-            <Button variant="coral">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Lead
-            </Button>
-          </Link>
+
         </div>
       </div>
 

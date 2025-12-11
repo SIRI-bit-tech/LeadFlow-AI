@@ -58,11 +58,18 @@ export class AIService {
       try {
         console.log(`Attempting AI generation with: ${provider.name}`);
         
-        const result = await generateText({
+        // If we have messages, don't pass prompt
+        const generateOptions: any = {
           model: provider.model,
-          prompt,
           ...options,
-        });
+        };
+        
+        // Only add prompt if it's not empty and we don't have messages
+        if (prompt && !options.messages) {
+          generateOptions.prompt = prompt;
+        }
+        
+        const result = await generateText(generateOptions);
         
         // Success - update current provider index for next time
         this.currentProviderIndex = providerIndex;
@@ -98,11 +105,18 @@ export class AIService {
       try {
         console.log(`Attempting AI streaming with: ${provider.name}`);
         
-        const result = streamText({
+        // If we have messages, don't pass prompt
+        const streamOptions: any = {
           model: provider.model,
-          prompt,
           ...options,
-        });
+        };
+        
+        // Only add prompt if it's not empty and we don't have messages
+        if (prompt && !options.messages) {
+          streamOptions.prompt = prompt;
+        }
+        
+        const result = streamText(streamOptions);
         
         // Success - update current provider index for next time
         this.currentProviderIndex = providerIndex;
@@ -200,8 +214,16 @@ Lead Context:
 - Source: ${leadContext.source || 'Unknown'}
 ` : '';
 
-  return AIService.streamText(LEAD_QUALIFICATION_PROMPT + contextPrompt, {
-    messages,
+  // Add system message with the qualification prompt
+  const systemMessage = {
+    role: 'system' as const,
+    content: LEAD_QUALIFICATION_PROMPT + contextPrompt
+  };
+
+  const allMessages = [systemMessage, ...messages];
+
+  return AIService.streamText('', {
+    messages: allMessages,
     temperature: 0.7,
   });
 }

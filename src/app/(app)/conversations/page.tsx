@@ -128,7 +128,7 @@ export default function ConversationsPage() {
               <div>
                 <p className="text-sm text-gray-600">Avg. Messages</p>
                 <p className="text-2xl font-bold">
-                  {Math.round(conversations.reduce((acc, conv) => acc + conv.messageCount, 0) / conversations.length)}
+                  {conversations.length > 0 ? Math.round(conversations.reduce((acc, conv) => acc + conv.messageCount, 0) / conversations.length) : 0}
                 </p>
               </div>
               <TrendingUp className="w-8 h-8 text-purple-500" />
@@ -286,12 +286,25 @@ export default function ConversationsPage() {
             <CardContent className="text-center py-12">
               <MessageSquare className="w-12 h-12 mx-auto text-gray-300 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No conversations found</h3>
-              <p className="text-gray-500">
+              <p className="text-gray-500 mb-4">
                 {searchTerm || statusFilter !== 'all' || sentimentFilter !== 'all'
                   ? 'Try adjusting your filters'
-                  : 'Conversations will appear here as leads interact with your AI'
+                  : 'Conversations will appear here as leads interact with your AI chat widget'
                 }
               </p>
+              {!searchTerm && statusFilter === 'all' && sentimentFilter === 'all' && (
+                <div className="bg-blue-50 p-4 rounded-lg text-left max-w-md mx-auto">
+                  <h4 className="font-medium text-blue-900 mb-2">Start Generating Leads</h4>
+                  <p className="text-sm text-blue-700 mb-3">
+                    Install the AI chat widget on your website to automatically qualify visitors as leads.
+                  </p>
+                  <Link href="/widget-setup">
+                    <Button className="w-full">
+                      Get Widget Code
+                    </Button>
+                  </Link>
+                </div>
+              )}
             </CardContent>
           </Card>
         )}

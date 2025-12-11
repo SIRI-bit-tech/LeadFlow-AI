@@ -116,3 +116,41 @@ export interface DashboardMetrics {
     timestamp: Date;
   }>;
 }
+
+// Widget Configuration
+export interface WidgetConfig {
+  apiUrl: string;
+  position: 'bottom-right' | 'bottom-left';
+  primaryColor: string;
+  accentColor: string;
+  title: string;
+  subtitle: string;
+  placeholder: string;
+}
+
+// AI Chat Types
+export interface ChatRequest {
+  message: string;
+  conversationId?: string;
+  leadData?: Record<string, any>;
+}
+
+export interface ChatResponse {
+  message: string;
+  conversationId: string;
+  leadId?: string;
+}
+
+// Lead Scoring Types
+export interface LeadScoreBreakdown {
+  companyFit: number;
+  budgetAlignment: number;
+  timeline: number;
+  authority: number;
+  need: number;
+  engagement: number;
+  reasoning: string;
+  sentiment: 'positive' | 'neutral' | 'negative';
+  buyingSignals: string[];
+  nextSteps: string;
+}

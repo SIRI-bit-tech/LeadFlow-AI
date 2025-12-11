@@ -103,7 +103,7 @@ export default function LeadsPage() {
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Leads</h1>
           <p className="text-gray-600 mt-1">
-            Manage and qualify your leads with AI-powered conversations
+            AI-generated leads from website conversations and interactions
           </p>
         </div>
         <div className="flex items-center space-x-3">
@@ -115,12 +115,7 @@ export default function LeadsPage() {
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
-          <Link href="/leads/new">
-            <Button variant="coral">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Lead
-            </Button>
-          </Link>
+
         </div>
       </div>
 
@@ -270,12 +265,17 @@ export default function LeadsPage() {
                 }
               </p>
               {!searchTerm && statusFilter === 'all' && classificationFilter === 'all' && (
-                <Link href="/leads/new">
-                  <Button variant="coral">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Lead
-                  </Button>
-                </Link>
+                <div className="bg-blue-50 p-4 rounded-lg text-left max-w-md mx-auto mt-4">
+                  <h4 className="font-medium text-blue-900 mb-2">Start Generating Leads</h4>
+                  <p className="text-sm text-blue-700 mb-3">
+                    Install the AI chat widget on your website to automatically qualify visitors as leads.
+                  </p>
+                  <Link href="/widget-setup">
+                    <Button className="w-full">
+                      Get Widget Code
+                    </Button>
+                  </Link>
+                </div>
               )}
             </div>
           )}
