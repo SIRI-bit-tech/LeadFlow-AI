@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-// import { usePathname } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import {
   LayoutDashboard,
   Users,
@@ -15,8 +14,6 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Bell,
-  Search,
   Plus,
   LogOut
 } from 'lucide-react';
@@ -31,16 +28,11 @@ interface AppSidebarProps {
   workspace?: {
     name: string;
   };
-  notifications?: number;
 }
 
-export function AppSidebar({ user, workspace, notifications = 0 }: AppSidebarProps) {
+export function AppSidebar({ user, workspace }: AppSidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const [currentPath, setCurrentPath] = useState('');
-  
-  useEffect(() => {
-    setCurrentPath(window.location.pathname);
-  }, []);
+  const currentPath = usePathname();
 
   const navigation = [
     {
@@ -72,6 +64,12 @@ export function AppSidebar({ user, workspace, notifications = 0 }: AppSidebarPro
       href: '/analytics',
       icon: BarChart3,
       current: currentPath.startsWith('/analytics'),
+    },
+    {
+      name: 'Widget Setup',
+      href: '/widget-setup',
+      icon: Plus,
+      current: currentPath.startsWith('/widget-setup'),
     },
     {
       name: 'Settings',
@@ -115,28 +113,7 @@ export function AppSidebar({ user, workspace, notifications = 0 }: AppSidebarPro
         </Button>
       </div>
 
-      {/* Quick Actions */}
-      {!collapsed && (
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex space-x-2">
-            <Button size="sm" variant="coral" className="flex-1">
-              <Plus className="w-4 h-4 mr-1" />
-              New Lead
-            </Button>
-            <Button size="sm" variant="outline">
-              <Search className="w-4 h-4" />
-            </Button>
-            <Button size="sm" variant="outline" className="relative">
-              <Bell className="w-4 h-4" />
-              {notifications > 0 && (
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 text-xs p-0 flex items-center justify-center bg-red-500">
-                  {notifications > 9 ? '9+' : notifications}
-                </Badge>
-              )}
-            </Button>
-          </div>
-        </div>
-      )}
+
 
       {/* Navigation */}
       <nav className="flex-1 p-4">

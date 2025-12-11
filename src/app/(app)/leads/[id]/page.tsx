@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,18 +23,13 @@ import Link from 'next/link';
 import { formatDate, getLeadStatusColor, getClassificationColor } from '@/lib/utils';
 
 export default function LeadDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
   const [lead, setLead] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [leadId, setLeadId] = useState<string>('');
 
   useEffect(() => {
-    const initializePage = async () => {
-      const { id } = await params;
-      setLeadId(id);
-      fetchLead(id);
-    };
-    initializePage();
-  }, [params]);
+    fetchLead(id);
+  }, [id]);
 
   const fetchLead = async (id: string) => {
     try {

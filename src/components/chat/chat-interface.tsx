@@ -1,113 +1,59 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { 
+  MessageSquare, 
+  Send, 
+  User, 
+  Bot,
+  Clock,
+  CheckCircle,
+  AlertCircle
+} from 'lucide-react';
 import { formatRelativeTime } from '@/lib/utils';
-import { useConversations } from '@/hooks';
+import type { Message, Conversation, Lead } from '@/types';
 
 interface ChatInterfaceProps {
-  leadId: string;
-  conversationId: string;
-  leadName?: string;
-  leadScore?: number;
-  onScoreUpdate?: (score: number) => void;
-  className?: string;
-}
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  createdAt: Date;
-}
-
-export function ChatInterface({
-  leadId,
-  conversationId,
-  leadName,
-  leadScore,
-  onScoreUpdate,
-  className
-}: ChatInterfaceProps) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { sendMessage } = useConversations();
-  const [isTyping, setIsTyping] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(e.target.value);
+  conversation: Conversation & { 
+    lead?: Lead; 
+    messageCount: number; 
+    lastMessage?: Message;
   };
+  onClose?: () => void;
+}
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!input.trim() || isLoading) return;
+export function ChatInterface({ conversation, onClose }: ChatInterfaceProps) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [loadingMessages, setLoadingMessages] = useState(true);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: 'user',
-      content: input,
-      createdAt: new Date(),
-    };
+  useEffect(() => {
+    fetchMessages();
+  }, [conversation.id]);
 
-    setMessages(prev => [...prev, userMessage]);
-    const messageContent = input;
-    setInput('');
-    setIsLoading(true);
-    setIsTyping(true);
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
+  const fetchMessages = async () => {
     try {
-      const response = await sendMessage(conversationId, messageContent);
-
-      if (response && response.ok) {
-        const reader = response.body?.getReader();
-        const decoder = new TextDecoder();
-        let assistantContent = '';
-
-        if (reader) {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-            
-            const chunk = decoder.decode(value);
-            assistantContent += chunk;
-          }
-        }
-
-        const assistantMessage: Message = {
-          id: (Date.now() + 1).toString(),
-          role: 'assistant',
-          content: assistantContent,
-          createdAt: new Date(),
-        };
-
-        setMessages(prev => [...prev, assistantMessage]);
-
-        // Update score
-        if (onScoreUpdate) {
-          setTimeout(() => {
-            onScoreUpdate(Math.min((leadScore || 0) + Math.floor(Math.random() * 10), 100));
-          }, 2000);
-        }
+      setLoadingMessages(true);
+      const response = await fetch(`/api/conversations/${conversation.id}/messages`);
+      if (response.ok) {
+        const data = await response.json();
+        setMessages(data.messages || []);
       }
     } catch (error) {
-      console.error('Chat error:', error);
-      // Add error message to chat
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Sorry, I encountered an error. Please try again.',
-        createdAt: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      console.error('Failed to fetch messages:', error);
     } finally {
-      setIsLoading(false);
-      setIsTyping(false);
+      setLoadingMessages(false);
     }
   };
 
@@ -115,117 +61,213 @@ export function ChatInterface({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  const sendMessage = async () => {
+    if (!newMessage.trim() || loading) return;
 
+    const messageText = newMessage.trim();
+    setNewMessage('');
+    setLoading(true);
 
+    try {
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: messageText,
+          conversationId: conversation.id,
+        }),
+      });
+
+      if (response.ok) {
+        // Refresh messages to get the latest
+        await fetchMessages();
+      } else {
+        console.error('Failed to send message');
+      }
+    } catch (error) {
+      console.error('Error sending message:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'active':
+        return <MessageSquare className="w-4 h-4 text-blue-500" />;
+      case 'completed':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'abandoned':
+        return <AlertCircle className="w-4 h-4 text-red-500" />;
+      default:
+        return <Clock className="w-4 h-4 text-gray-500" />;
+    }
+  };
+
+  const getSentimentColor = (sentiment: string) => {
+    switch (sentiment) {
+      case 'positive': return 'text-green-600 bg-green-100';
+      case 'negative': return 'text-red-600 bg-red-100';
+      default: return 'text-gray-600 bg-gray-100';
+    }
+  };
 
   return (
-    <Card className={`flex flex-col h-[600px] ${className}`}>
-      <CardHeader className="flex-shrink-0 border-b">
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg">
-            Chat with {leadName || 'Lead'}
-          </CardTitle>
-          {leadScore !== undefined && (
+          <div className="flex items-center space-x-3">
+            <Avatar className="w-10 h-10">
+              <AvatarFallback className="bg-primary/10 text-primary">
+                {conversation.lead?.name?.charAt(0) || conversation.lead?.email?.charAt(0) || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <CardTitle className="text-lg">
+                {conversation.lead?.name || 'Anonymous Lead'}
+              </CardTitle>
+              <div className="flex items-center space-x-2 text-sm text-gray-600">
+                <span>{conversation.lead?.email}</span>
+                {conversation.lead?.company && (
+                  <>
+                    <span>•</span>
+                    <span>{conversation.lead?.company}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1">
+              {getStatusIcon(conversation.status)}
+              <span className="text-sm capitalize">{conversation.status}</span>
+            </div>
             <Badge 
-              variant={leadScore >= 80 ? 'hot' : leadScore >= 60 ? 'warm' : leadScore >= 40 ? 'cold' : 'unqualified'}
+              variant="outline" 
+              className={getSentimentColor(conversation.sentiment || 'neutral')}
             >
-              Score: {leadScore}/100
+              {conversation.sentiment || 'neutral'}
             </Badge>
-          )}
+            {conversation.lead?.classification && (
+              <Badge variant={conversation.lead.classification as any}>
+                {conversation.lead.classification}
+              </Badge>
+            )}
+            {onClose && (
+              <Button variant="ghost" size="sm" onClick={onClose}>
+                ×
+              </Button>
+            )}
+          </div>
         </div>
+        
+        {conversation.summary && (
+          <div className="mt-2 p-2 bg-gray-50 rounded text-sm text-gray-700">
+            <strong>Summary:</strong> {conversation.summary}
+          </div>
+        )}
       </CardHeader>
 
       <CardContent className="flex-1 flex flex-col p-0">
-        {/* Messages Area */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 custom-scrollbar">
-          {messages.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              <Bot className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-              <p>Start a conversation with your lead</p>
-              <p className="text-sm">The AI will help qualify them automatically</p>
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {loadingMessages ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-gray-500">Loading messages...</div>
             </div>
-          )}
-
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-            >
+          ) : messages.length === 0 ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center text-gray-500">
+                <MessageSquare className="w-12 h-12 mx-auto mb-2 text-gray-300" />
+                <p>No messages yet</p>
+              </div>
+            </div>
+          ) : (
+            messages.map((message) => (
               <div
-                className={`flex items-start space-x-2 max-w-[80%] ${
+                key={message.id}
+                className={`flex items-start space-x-3 ${
                   message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''
                 }`}
               >
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    message.role === 'user'
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-gray-100 text-gray-600'
-                  }`}
-                >
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  message.role === 'user' 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-gray-100 text-gray-600'
+                }`}>
                   {message.role === 'user' ? (
                     <User className="w-4 h-4" />
                   ) : (
                     <Bot className="w-4 h-4" />
                   )}
                 </div>
-                <div
-                  className={`rounded-lg p-3 ${
+                
+                <div className={`flex-1 max-w-[80%] ${
+                  message.role === 'user' ? 'text-right' : ''
+                }`}>
+                  <div className={`inline-block p-3 rounded-lg ${
                     message.role === 'user'
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-gray-100 text-gray-900'
-                  }`}
-                >
-                  <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                  <p className="text-xs opacity-70 mt-1">
-                    {formatRelativeTime(message.createdAt || new Date())}
+                  }`}>
+                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formatRelativeTime(message.createdAt)}
                   </p>
                 </div>
               </div>
-            </div>
-          ))}
-
-          {(isLoading || isTyping) && (
-            <div className="flex justify-start">
-              <div className="flex items-start space-x-2 max-w-[80%]">
-                <div className="w-8 h-8 rounded-full bg-gray-100 text-gray-600 flex items-center justify-center flex-shrink-0">
-                  <Bot className="w-4 h-4" />
-                </div>
-                <div className="bg-gray-100 text-gray-900 rounded-lg p-3">
-                  <div className="flex items-center space-x-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span className="text-sm">AI is typing...</span>
+            ))
+          )}
+          
+          {loading && (
+            <div className="flex items-start space-x-3">
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <Bot className="w-4 h-4 text-gray-600" />
+              </div>
+              <div className="flex-1">
+                <div className="inline-block p-3 bg-gray-100 rounded-lg">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                   </div>
                 </div>
               </div>
             </div>
           )}
-
+          
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Area */}
+        {/* Input */}
         <div className="border-t p-4">
-          <form onSubmit={handleSubmit} className="flex space-x-2">
+          <div className="flex space-x-2">
             <Input
-              value={input}
-              onChange={handleInputChange}
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
               placeholder="Type your message..."
-              disabled={isLoading}
+              disabled={loading}
               className="flex-1"
-              autoFocus
             />
-            <Button
-              type="submit"
-              disabled={isLoading || !input.trim()}
+            <Button 
+              onClick={sendMessage} 
+              disabled={loading || !newMessage.trim()}
               size="icon"
             >
               <Send className="w-4 h-4" />
             </Button>
-          </form>
+          </div>
         </div>
       </CardContent>
     </Card>

@@ -1,7 +1,7 @@
 import { db, conversations, messages, leads } from '@/lib/db';
-import { eq, desc } from 'drizzle-orm';
-import { generateConversationSummary } from '@/lib/ai';
-import { scoreLeadFromConversation } from './lead-scoring';
+import { eq, desc, count } from 'drizzle-orm';
+import { generateConversationSummary, scoreLeadConversation } from '@/lib/ai';
+import { calculateLeadScore, classifyLead } from '@/lib/utils';
 
 export async function createConversation(leadId: string, workspaceId: string) {
   const [conversation] = await db.insert(conversations).values({
@@ -91,7 +91,7 @@ export async function completeConversation(conversationId: string) {
     content: m.content,
   }));
 
-  await scoreLeadFromConversation(
+  await scoreLeadFromConversationData(
     conversation.leadId,
     messageHistory,
     {
@@ -125,33 +125,95 @@ export async function getActiveConversations(workspaceId: string) {
     orderBy: [desc(conversations.updatedAt)],
   });
 
-  // Format conversations for frontend
-  return rawConversations.map(conv => ({
-    id: conv.id,
-    status: conv.status,
-    summary: conv.summary,
-    sentiment: conv.sentiment || 'neutral',
-    createdAt: conv.createdAt,
-    updatedAt: conv.updatedAt,
-    messageCount: conv.messages.length > 0 ? Math.floor(Math.random() * 20) + 5 : 0, // Approximate count
-    lead: {
-      id: conv.lead.id,
-      name: conv.lead.name,
-      email: conv.lead.email,
-      company: conv.lead.company,
-      classification: conv.lead.classification,
-      score: conv.lead.score,
-    },
-    lastMessage: conv.messages.length > 0 ? {
-      role: conv.messages[0].role,
-      content: conv.messages[0].content,
-      timestamp: conv.messages[0].createdAt,
-    } : {
-      role: 'assistant',
-      content: 'Conversation started',
-      timestamp: conv.createdAt,
-    },
-  }));
+  // Get accurate message counts for each conversation
+  const conversationsWithCounts = await Promise.all(
+    rawConversations.map(async (conv) => {
+      const messageCountResult = await db
+        .select({ count: count() })
+        .from(messages)
+        .where(eq(messages.conversationId, conv.id));
+
+      const messageCount = messageCountResult[0]?.count || 0;
+
+      return {
+        id: conv.id,
+        status: conv.status,
+        summary: conv.summary,
+        sentiment: conv.sentiment || 'neutral',
+        createdAt: conv.createdAt,
+        updatedAt: conv.updatedAt,
+        messageCount,
+        lead: {
+          id: conv.lead.id,
+          name: conv.lead.name,
+          email: conv.lead.email,
+          company: conv.lead.company,
+          classification: conv.lead.classification,
+          score: conv.lead.score,
+        },
+        lastMessage: conv.messages.length > 0 ? {
+          role: conv.messages[0].role,
+          content: conv.messages[0].content,
+          timestamp: conv.messages[0].createdAt,
+        } : {
+          role: 'assistant',
+          content: 'Conversation started',
+          timestamp: conv.createdAt,
+        },
+      };
+    })
+  );
+
+  return conversationsWithCounts;
+}
+
+export async function scoreLeadFromConversationData(
+  leadId: string,
+  messageHistory: Array<{ role: 'user' | 'assistant'; content: string }>,
+  leadData?: {
+    company?: string;
+    industry?: string;
+    companySize?: string;
+  }
+) {
+  try {
+    // Score the conversation using AI
+    const scoring = await scoreLeadConversation(messageHistory, leadData);
+
+    // Calculate total score
+    const totalScore = calculateLeadScore({
+      companyFit: scoring.companyFit,
+      budgetAlignment: scoring.budgetAlignment,
+      timeline: scoring.timeline,
+      authority: scoring.authority,
+      need: scoring.need,
+      engagement: scoring.engagement,
+    });
+
+    // Update lead classification and status
+    const classification = classifyLead(totalScore);
+    const status = totalScore >= 70 ? 'qualified' : 'qualifying';
+
+    await db
+      .update(leads)
+      .set({
+        score: totalScore,
+        classification,
+        status,
+        updatedAt: new Date(),
+      })
+      .where(eq(leads.id, leadId));
+
+    return {
+      totalScore,
+      classification,
+      status,
+      scoring,
+    };
+  } catch (error) {
+    console.error('Failed to score lead from conversation:', error);
+    return null;
+  }
 }
 
 export async function analyzeConversationSentiment(conversationId: string) {
