@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ConversationService } from '@/services/conversation-service';
-import { getAuthenticatedUser } from '@/lib/api-auth';
+import { authenticateApiRequest, isAuthError } from '@/lib/api-auth';
 
 export async function GET(
   request: NextRequest,
@@ -10,13 +10,12 @@ export async function GET(
     const { id } = await params;
     
     // Get authenticated user
-    const user = await getAuthenticatedUser(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const authResult = await authenticateApiRequest();
+    if (isAuthError(authResult)) {
+      return authResult.error;
     }
+
+    const user = authResult.session.user;
 
     // Get conversation
     const conversation = await ConversationService.getConversationById(id);
@@ -31,7 +30,7 @@ export async function GET(
     // Check if conversation belongs to user's workspace
     if (conversation.workspaceId !== user.workspaceId) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
+        { error: 'Forbidden' },
         { status: 403 }
       );
     }
@@ -59,19 +58,35 @@ export async function PATCH(
     const { status } = await request.json();
     
     // Get authenticated user
-    const user = await getAuthenticatedUser(request);
-    if (!user) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const authResult = await authenticateApiRequest();
+    if (isAuthError(authResult)) {
+      return authResult.error;
     }
+
+    const user = authResult.session.user;
 
     // Validate status
     if (!['active', 'completed', 'abandoned'].includes(status)) {
       return NextResponse.json(
         { error: 'Invalid status' },
         { status: 400 }
+      );
+    }
+
+    // Get conversation to verify workspace ownership
+    const conversation = await ConversationService.getConversationById(id);
+    if (!conversation) {
+      return NextResponse.json(
+        { error: 'Conversation not found' },
+        { status: 404 }
+      );
+    }
+
+    // Verify conversation belongs to user's workspace
+    if (conversation.workspaceId !== user.workspaceId) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403 }
       );
     }
 

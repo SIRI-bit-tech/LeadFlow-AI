@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer, jsonb, boolean, uuid, varchar, decimal } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, jsonb, boolean, uuid, varchar, decimal, unique } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 // Users table (Better Auth compatible)
@@ -91,7 +91,9 @@ export const leads = pgTable('leads', {
   metadata: jsonb('metadata').default({}),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
+}, (table) => ({
+  emailWorkspaceUnique: unique().on(table.email, table.workspaceId),
+}));
 
 // Conversations table
 export const conversations = pgTable('conversations', {

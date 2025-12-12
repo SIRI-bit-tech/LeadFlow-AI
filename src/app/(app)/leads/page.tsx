@@ -93,7 +93,7 @@ export default function LeadsPage() {
 
   const handleLeadAssign = (leadId: string) => {
     // In real app, open assignment modal
-    console.log('Assign lead:', leadId);
+    // Implementation would go here
   };
 
   return (

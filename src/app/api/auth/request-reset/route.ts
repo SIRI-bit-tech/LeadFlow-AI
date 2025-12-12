@@ -82,11 +82,11 @@ export async function POST(request: NextRequest) {
       // https://yourapp.com/reset-password?token=${resetToken}
       
       // Privacy-safe logging - no PII exposed
-      console.log('Password reset token generated for user:', user.id);
+      // Token generated for user: ${user.id}
       
       // For development only - remove in production
       if (process.env.NODE_ENV === 'development') {
-        console.log(`Reset link: ${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}`);
+        // Reset link: ${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${resetToken}
       }
     }
 

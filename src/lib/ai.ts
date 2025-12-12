@@ -38,7 +38,6 @@ export const ai = (() => {
     throw new Error('No AI providers configured. Please add at least one API key to your environment variables.');
   }
   
-  console.log(`Using AI Provider: ${availableProviders[0].name}`);
   return availableProviders[0].model;
 })();
 
@@ -56,8 +55,6 @@ export class AIService {
       const provider = this.providers[providerIndex];
       
       try {
-        console.log(`Attempting AI generation with: ${provider.name}`);
-        
         // If we have messages, don't pass prompt
         const generateOptions: any = {
           model: provider.model,
@@ -73,7 +70,6 @@ export class AIService {
         
         // Success - update current provider index for next time
         this.currentProviderIndex = providerIndex;
-        console.log(`✅ AI generation successful with: ${provider.name}`);
         
         return result;
       } catch (error) {
@@ -103,8 +99,6 @@ export class AIService {
       const provider = this.providers[providerIndex];
       
       try {
-        console.log(`Attempting AI streaming with: ${provider.name}`);
-        
         // If we have messages, don't pass prompt
         const streamOptions: any = {
           model: provider.model,
@@ -120,7 +114,6 @@ export class AIService {
         
         // Success - update current provider index for next time
         this.currentProviderIndex = providerIndex;
-        console.log(`✅ AI streaming successful with: ${provider.name}`);
         
         return result;
       } catch (error) {
@@ -170,7 +163,6 @@ export class AIService {
     const providerIndex = this.providers.findIndex(p => p.name === providerName);
     if (providerIndex !== -1) {
       this.currentProviderIndex = providerIndex;
-      console.log(`Switched to AI provider: ${providerName}`);
       return true;
     }
     return false;

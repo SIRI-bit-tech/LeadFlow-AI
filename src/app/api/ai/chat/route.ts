@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       // Create lead with minimal data
       await db.insert(leads).values({
         id: newLeadId,
-        email: leadData?.email || `anonymous-${Date.now()}@temp.com`,
+        email: leadData?.email || `${crypto.randomUUID()}@example.invalid`,
         name: leadData?.name,
         company: leadData?.company,
         source: 'widget',
@@ -125,14 +125,14 @@ export async function POST(request: NextRequest) {
 
       lead = {
         id: newLeadId,
-        email: leadData?.email || `anonymous-${Date.now()}@temp.com`,
+        email: leadData?.email || `${crypto.randomUUID()}@example.invalid`,
         name: leadData?.name,
         company: leadData?.company,
         source: 'widget',
         status: 'qualifying',
         score: 0,
         classification: 'cold',
-        workspaceId,
+        workspaceId: targetWorkspaceId,
         conversationId: newConversationId,
         metadata: leadData || {},
       };
@@ -182,8 +182,8 @@ export async function POST(request: NextRequest) {
 
     // Update conversation and lead scoring every few messages
     const messageCount = messageHistory.length + 2; // +2 for the new messages
-    if (messageCount >= 4 && messageCount % 3 === 0) {
-      await updateLeadScoring(conversation.id, lead!.id);
+    if (lead && messageCount >= 4 && messageCount % 3 === 0) {
+      await updateLeadScoring(conversation.id, lead.id);
     }
 
     return NextResponse.json({

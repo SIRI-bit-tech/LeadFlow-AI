@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { ConversationService } from '@/services/conversation-service';
-import { getAuthenticatedUser } from '@/lib/api-auth';
+import { authenticateApiRequest, isAuthError } from '@/lib/api-auth';
 
 export async function GET(
   request: NextRequest,
@@ -10,11 +10,27 @@ export async function GET(
     const { id } = await params;
     
     // Get authenticated user
-    const user = await getAuthenticatedUser(request);
-    if (!user) {
+    const authResult = await authenticateApiRequest();
+    if (isAuthError(authResult)) {
+      return authResult.error;
+    }
+
+    const user = authResult.session.user;
+
+    // Get conversation to verify workspace ownership
+    const conversation = await ConversationService.getConversationById(id);
+    if (!conversation) {
       return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
+        { error: 'Conversation not found' },
+        { status: 404 }
+      );
+    }
+
+    // Verify conversation belongs to user's workspace
+    if (conversation.workspaceId !== user.workspaceId) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403 }
       );
     }
 

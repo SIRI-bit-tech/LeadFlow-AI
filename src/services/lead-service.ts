@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
-import { leads, leadScores, conversations } from '@/db/schema';
-import { eq, and, desc, count, sql } from 'drizzle-orm';
+import { leads, leadScores } from '@/db/schema';
+import { eq, desc, count, sql } from 'drizzle-orm';
 import { validateEmail, classifyLead } from '@/lib/utils';
 import type { Lead, LeadScore } from '@/types';
 
@@ -21,39 +21,11 @@ export class LeadService {
         throw new Error('Invalid email address');
       }
 
-      // Check if lead already exists
-      const existingLead = await db
-        .select()
-        .from(leads)
-        .where(and(
-          eq(leads.email, data.email),
-          eq(leads.workspaceId, data.workspaceId)
-        ))
-        .limit(1);
-
-      if (existingLead.length > 0) {
-        // Update existing lead with new conversation
-        await db
-          .update(leads)
-          .set({
-            conversationId: data.conversationId,
-            name: data.name || existingLead[0].name,
-            company: data.company || existingLead[0].company,
-            industry: data.industry || existingLead[0].industry,
-            companySize: data.companySize || existingLead[0].companySize,
-            phone: data.phone || existingLead[0].phone,
-            metadata: { ...existingLead[0].metadata, ...data.metadata },
-            updatedAt: new Date(),
-          })
-          .where(eq(leads.id, existingLead[0].id));
-
-        return existingLead[0];
-      }
-
-      // Create new lead
       const leadId = crypto.randomUUID();
+      const now = new Date();
       
-      await db.insert(leads).values({
+      // Use upsert to avoid race conditions
+      const result = await db.insert(leads).values({
         id: leadId,
         email: data.email,
         name: data.name,
@@ -68,15 +40,36 @@ export class LeadService {
         workspaceId: data.workspaceId,
         conversationId: data.conversationId,
         metadata: data.metadata || {},
-      });
+        createdAt: now,
+        updatedAt: now,
+      }).onConflictDoUpdate({
+        target: [leads.email, leads.workspaceId],
+        set: {
+          conversationId: data.conversationId,
+          // Prefer non-empty incoming values, otherwise keep existing
+          name: sql`CASE WHEN ${data.name} IS NOT NULL AND ${data.name} != '' THEN ${data.name} ELSE ${leads.name} END`,
+          company: sql`CASE WHEN ${data.company} IS NOT NULL AND ${data.company} != '' THEN ${data.company} ELSE ${leads.company} END`,
+          industry: sql`CASE WHEN ${data.industry} IS NOT NULL AND ${data.industry} != '' THEN ${data.industry} ELSE ${leads.industry} END`,
+          companySize: sql`CASE WHEN ${data.companySize} IS NOT NULL AND ${data.companySize} != '' THEN ${data.companySize} ELSE ${leads.companySize} END`,
+          phone: sql`CASE WHEN ${data.phone} IS NOT NULL AND ${data.phone} != '' THEN ${data.phone} ELSE ${leads.phone} END`,
+          // Merge metadata with existing metadata
+          metadata: sql`${leads.metadata} || ${data.metadata || {}}`,
+          updatedAt: now,
+        },
+      }).returning();
 
-      const newLead = await db
-        .select()
-        .from(leads)
-        .where(eq(leads.id, leadId))
-        .limit(1);
-
-      return newLead[0] || null;
+      const lead = result[0];
+      if (!lead) return null;
+      
+      // Convert null values to undefined for TypeScript compatibility
+      return {
+        ...lead,
+        name: lead.name || undefined,
+        company: lead.company || undefined,
+        industry: lead.industry || undefined,
+        companySize: lead.companySize || undefined,
+        phone: lead.phone || undefined,
+      } as Lead;
     } catch (error) {
       console.error('Failed to create lead from conversation:', error);
       return null;
@@ -90,7 +83,7 @@ export class LeadService {
     companySize?: string;
     phone?: string;
     metadata?: Record<string, any>;
-  }): Promise<boolean> {
+  }): Promise<Lead | null> {
     try {
       const updateData: any = {
         updatedAt: new Date(),
@@ -110,21 +103,34 @@ export class LeadService {
           .limit(1);
 
         if (existingLead.length > 0) {
-          updateData.metadata = { ...existingLead[0].metadata, ...data.metadata };
+          const existingMetadata = existingLead[0].metadata as Record<string, any> || {};
+          updateData.metadata = { ...existingMetadata, ...data.metadata };
         } else {
           updateData.metadata = data.metadata;
         }
       }
 
-      await db
+      const result = await db
         .update(leads)
         .set(updateData)
-        .where(eq(leads.id, leadId));
+        .where(eq(leads.id, leadId))
+        .returning();
 
-      return true;
+      const lead = result[0];
+      if (!lead) return null;
+
+      // Convert null values to undefined for TypeScript compatibility
+      return {
+        ...lead,
+        name: lead.name || undefined,
+        company: lead.company || undefined,
+        industry: lead.industry || undefined,
+        companySize: lead.companySize || undefined,
+        phone: lead.phone || undefined,
+      } as Lead;
     } catch (error) {
       console.error('Failed to update lead from conversation:', error);
-      return false;
+      return null;
     }
   }
 
@@ -205,12 +211,12 @@ export class LeadService {
     }
   }
 
-  static async getLeadWithScore(leadId: string): Promise<(Lead & { score?: LeadScore }) | null> {
+  static async getLeadWithScore(leadId: string): Promise<(Lead & { leadScore?: LeadScore }) | null> {
     try {
       const result = await db
         .select({
           lead: leads,
-          score: leadScores,
+          leadScore: leadScores,
         })
         .from(leads)
         .leftJoin(leadScores, eq(leads.id, leadScores.leadId))
@@ -219,33 +225,43 @@ export class LeadService {
 
       if (result.length === 0) return null;
 
-      const { lead, score } = result[0];
+      const { lead, leadScore } = result[0];
       return {
         ...lead,
-        score: score || undefined,
-      };
+        name: lead.name || undefined,
+        company: lead.company || undefined,
+        industry: lead.industry || undefined,
+        companySize: lead.companySize || undefined,
+        phone: lead.phone || undefined,
+        leadScore: leadScore || undefined,
+      } as Lead & { leadScore?: LeadScore };
     } catch (error) {
       console.error('Failed to get lead with score:', error);
       return null;
     }
   }
 
-  static async getLeadsByWorkspace(workspaceId: string): Promise<Array<Lead & { score?: LeadScore }>> {
+  static async getLeadsByWorkspace(workspaceId: string): Promise<Array<Lead & { leadScore?: LeadScore }>> {
     try {
       const result = await db
         .select({
           lead: leads,
-          score: leadScores,
+          leadScore: leadScores,
         })
         .from(leads)
         .leftJoin(leadScores, eq(leads.id, leadScores.leadId))
         .where(eq(leads.workspaceId, workspaceId))
         .orderBy(desc(leads.updatedAt));
 
-      return result.map(({ lead, score }) => ({
+      return result.map(({ lead, leadScore }) => ({
         ...lead,
-        score: score || undefined,
-      }));
+        name: lead.name || undefined,
+        company: lead.company || undefined,
+        industry: lead.industry || undefined,
+        companySize: lead.companySize || undefined,
+        phone: lead.phone || undefined,
+        leadScore: leadScore || undefined,
+      })) as Array<Lead & { leadScore?: LeadScore }>;
     } catch (error) {
       console.error('Failed to get leads by workspace:', error);
       return [];

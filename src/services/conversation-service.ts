@@ -1,6 +1,6 @@
 import { db } from '@/lib/db';
-import { conversations, messages, leads, leadScores } from '@/db/schema';
-import { eq, and, desc, count } from 'drizzle-orm';
+import { conversations, messages, leads } from '@/db/schema';
+import { eq, and, desc, count, sql, inArray } from 'drizzle-orm';
 import type { Conversation, Message, Lead } from '@/types';
 
 export class ConversationService {
@@ -41,9 +41,22 @@ export class ConversationService {
 
       return {
         ...conversation,
-        lead: lead || undefined,
+        status: conversation.status as 'active' | 'completed' | 'abandoned',
+        summary: conversation.summary || undefined,
+        sentiment: (conversation.sentiment as 'neutral' | 'positive' | 'negative') || 'neutral',
+        lead: lead ? {
+          ...lead,
+          name: lead.name || undefined,
+          company: lead.company || undefined,
+          industry: lead.industry || undefined,
+          companySize: lead.companySize || undefined,
+          phone: lead.phone || undefined,
+        } as Lead : undefined,
         messageCount,
-        lastMessage,
+        lastMessage: lastMessage ? {
+          ...lastMessage,
+          role: lastMessage.role as 'user' | 'assistant' | 'system',
+        } as Message : undefined,
       };
     } catch (error) {
       console.error('Failed to get conversation:', error);
@@ -59,7 +72,10 @@ export class ConversationService {
         .where(eq(messages.conversationId, conversationId))
         .orderBy(messages.createdAt);
 
-      return result;
+      return result.map(msg => ({
+        ...msg,
+        role: msg.role as 'user' | 'assistant' | 'system',
+      })) as Message[];
     } catch (error) {
       console.error('Failed to get conversation messages:', error);
       return [];
@@ -79,35 +95,68 @@ export class ConversationService {
         .where(eq(conversations.workspaceId, workspaceId))
         .orderBy(desc(conversations.updatedAt));
 
-      // Get message counts and last messages for each conversation
-      const conversationsWithData = await Promise.all(
-        result.map(async ({ conversation, lead }) => {
-          // Get message count
-          const messageCountResult = await db
-            .select({ count: count() })
-            .from(messages)
-            .where(eq(messages.conversationId, conversation.id));
+      if (result.length === 0) return [];
 
-          const messageCount = messageCountResult[0]?.count || 0;
+      const conversationIds = result.map(r => r.conversation.id);
 
-          // Get last message
-          const lastMessageResult = await db
-            .select()
-            .from(messages)
-            .where(eq(messages.conversationId, conversation.id))
-            .orderBy(desc(messages.createdAt))
-            .limit(1);
-
-          const lastMessage = lastMessageResult[0] || undefined;
-
-          return {
-            ...conversation,
-            lead: lead || undefined,
-            messageCount,
-            lastMessage,
-          };
+      // Batch fetch message counts for all conversations
+      const messageCounts = await db
+        .select({
+          conversationId: messages.conversationId,
+          count: count(),
         })
-      );
+        .from(messages)
+        .where(inArray(messages.conversationId, conversationIds))
+        .groupBy(messages.conversationId);
+
+      const countMap = new Map(messageCounts.map(mc => [mc.conversationId, mc.count]));
+
+      // Batch fetch last messages using window function
+      const lastMessages = await db
+        .select({
+          conversationId: messages.conversationId,
+          id: messages.id,
+          role: messages.role,
+          content: messages.content,
+          metadata: messages.metadata,
+          createdAt: messages.createdAt,
+          rn: sql<number>`row_number() over (partition by ${messages.conversationId} order by ${messages.createdAt} desc)`.as('rn'),
+        })
+        .from(messages)
+        .where(inArray(messages.conversationId, conversationIds));
+
+      // Filter to get only the most recent message per conversation
+      const lastMessageMap = new Map();
+      lastMessages.forEach(msg => {
+        if (msg.rn === 1) {
+          lastMessageMap.set(msg.conversationId, {
+            id: msg.id,
+            conversationId: msg.conversationId,
+            role: msg.role as 'user' | 'assistant' | 'system',
+            content: msg.content,
+            metadata: msg.metadata,
+            createdAt: msg.createdAt,
+          });
+        }
+      });
+
+      // Combine all data
+      const conversationsWithData = result.map(({ conversation, lead }) => ({
+        ...conversation,
+        status: conversation.status as 'active' | 'completed' | 'abandoned',
+        summary: conversation.summary || undefined,
+        sentiment: (conversation.sentiment as 'neutral' | 'positive' | 'negative') || 'neutral',
+        lead: lead ? {
+          ...lead,
+          name: lead.name || undefined,
+          company: lead.company || undefined,
+          industry: lead.industry || undefined,
+          companySize: lead.companySize || undefined,
+          phone: lead.phone || undefined,
+        } as Lead : undefined,
+        messageCount: countMap.get(conversation.id) || 0,
+        lastMessage: lastMessageMap.get(conversation.id) || undefined,
+      }));
 
       return conversationsWithData;
     } catch (error) {
