@@ -19,13 +19,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate and coerce name to string
+    // Validate name is a non-empty string
     if (typeof name !== 'string' || !name.trim()) {
       return NextResponse.json(
         { error: 'Valid name is required' },
         { status: 400 }
       );
     }
+    const trimmedName = name.trim();
 
     // Validate and coerce email to string
     if (typeof email !== 'string' || !email.trim()) {
@@ -42,6 +43,11 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+
+    const workspaceName =
+      typeof company === 'string' && company.trim()
+        ? company.trim()
+        : `${trimmedName}'s Workspace`;
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -101,7 +107,7 @@ export async function POST(request: NextRequest) {
       try {
         // Create user first
         const [user] = await tx.insert(users).values({
-          name,
+          name: trimmedName,
           email: normalizedEmail,
           passwordHash,
           workspaceId: crypto.randomUUID(), // Temporary workspace ID
@@ -110,7 +116,7 @@ export async function POST(request: NextRequest) {
 
         // Create workspace with the real user as owner
         const [workspace] = await tx.insert(workspaces).values({
-          name: company || `${name}'s Workspace`,
+          name: workspaceName,
           ownerId: user.id,
         }).returning();
 
