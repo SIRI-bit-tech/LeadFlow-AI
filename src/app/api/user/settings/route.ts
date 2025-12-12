@@ -85,7 +85,9 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    if (!EMAIL_REGEX.test(email.trim())) {
+    const normalizedEmail = email.trim().toLowerCase();
+
+    if (!EMAIL_REGEX.test(normalizedEmail)) {
       return NextResponse.json(
         { error: 'Email must be a valid email address' },
         { status: 400 }
@@ -119,7 +121,7 @@ export async function PUT(request: NextRequest) {
       .select()
       .from(users)
       .where(and(
-        eq(users.email, email.trim()),
+        eq(users.email, normalizedEmail),
         ne(users.id, userId)
       ))
       .limit(1);
@@ -134,7 +136,7 @@ export async function PUT(request: NextRequest) {
     // Prepare update data
     const updateData = {
       name: name.trim(),
-      email: email.trim(),
+      email: normalizedEmail,
       companyName: companyName?.trim() || null,
       industry: industry?.trim() || null,
       teamSize: teamSize || null,
@@ -143,10 +145,18 @@ export async function PUT(request: NextRequest) {
 
     // Update user settings with proper error handling
     try {
-      await db
+      const updatedUsers = await db
         .update(users)
         .set(updateData)
-        .where(eq(users.id, userId));
+        .where(eq(users.id, userId))
+        .returning();
+
+      if (updatedUsers.length === 0) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        );
+      }
     } catch (dbError: any) {
       console.error('Database update error:', dbError);
       

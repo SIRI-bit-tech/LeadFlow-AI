@@ -27,7 +27,7 @@ export class ConversationService {
         .from(messages)
         .where(eq(messages.conversationId, id));
 
-      const messageCount = messageCountResult[0]?.count || 0;
+      const messageCount = Number(messageCountResult[0]?.count ?? 0) || 0;
 
       // Get last message
       const lastMessageResult = await db
@@ -38,6 +38,14 @@ export class ConversationService {
         .limit(1);
 
       const lastMessage = lastMessageResult[0] || undefined;
+      const normalizedRole = lastMessage
+        ? (() => {
+            const roleStr = String(lastMessage.role);
+            return (roleStr === 'user' || roleStr === 'assistant' || roleStr === 'system')
+              ? (roleStr as 'user' | 'assistant' | 'system')
+              : 'assistant';
+          })()
+        : undefined;
 
       return {
         ...conversation,
@@ -55,7 +63,7 @@ export class ConversationService {
         messageCount,
         lastMessage: lastMessage ? {
           ...lastMessage,
-          role: lastMessage.role as 'user' | 'assistant' | 'system',
+          role: normalizedRole as 'user' | 'assistant' | 'system',
         } as Message : undefined,
       };
     } catch (error) {
@@ -111,33 +119,46 @@ export class ConversationService {
 
       const countMap = new Map(messageCounts.map(mc => [mc.conversationId, mc.count]));
 
-      // Batch fetch last messages using window function
-      const lastMessages = await db
-        .select({
-          conversationId: messages.conversationId,
-          id: messages.id,
-          role: messages.role,
-          content: messages.content,
-          metadata: messages.metadata,
-          createdAt: messages.createdAt,
-          rn: sql<number>`row_number() over (partition by ${messages.conversationId} order by ${messages.createdAt} desc)`.as('rn'),
-        })
-        .from(messages)
-        .where(inArray(messages.conversationId, conversationIds));
+      // Batch fetch last messages using window function filtered in SQL
+      const lastMessagesCte = db.$with('last_messages').as(
+        db
+          .select({
+            conversationId: messages.conversationId,
+            id: messages.id,
+            role: messages.role,
+            content: messages.content,
+            metadata: messages.metadata,
+            createdAt: messages.createdAt,
+            rn: sql<number>`row_number() over (partition by ${messages.conversationId} order by ${messages.createdAt} desc)`.mapWith(Number).as('rn'),
+          })
+          .from(messages)
+          .where(inArray(messages.conversationId, conversationIds))
+      );
 
-      // Filter to get only the most recent message per conversation
+      const lastMessages = await db
+        .with(lastMessagesCte)
+        .select({
+          conversationId: lastMessagesCte.conversationId,
+          id: lastMessagesCte.id,
+          role: lastMessagesCte.role,
+          content: lastMessagesCte.content,
+          metadata: lastMessagesCte.metadata,
+          createdAt: lastMessagesCte.createdAt,
+        })
+        .from(lastMessagesCte)
+        .where(eq(lastMessagesCte.rn, 1));
+
+      // Map last messages by conversation
       const lastMessageMap = new Map();
       lastMessages.forEach(msg => {
-        if (msg.rn === 1) {
-          lastMessageMap.set(msg.conversationId, {
-            id: msg.id,
-            conversationId: msg.conversationId,
-            role: msg.role as 'user' | 'assistant' | 'system',
-            content: msg.content,
-            metadata: msg.metadata,
-            createdAt: msg.createdAt,
-          });
-        }
+        lastMessageMap.set(msg.conversationId, {
+          id: msg.id,
+          conversationId: msg.conversationId,
+          role: msg.role as 'user' | 'assistant' | 'system',
+          content: msg.content,
+          metadata: msg.metadata,
+          createdAt: msg.createdAt,
+        });
       });
 
       // Combine all data

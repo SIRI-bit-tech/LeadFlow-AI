@@ -23,8 +23,11 @@ function getPublicApiOrigin(request: NextRequest): string {
     // Validate and normalize the environment URL
     try {
       const url = new URL(envApiUrl);
-      // Ensure it has a protocol and remove trailing slash
-      return `${url.protocol}//${url.host}`;
+      // Only allow http/https schemes
+      if (url.protocol === 'http:' || url.protocol === 'https:') {
+        return `${url.protocol}//${url.host}`;
+      }
+      console.warn('Invalid API_URL protocol (must be http/https):', envApiUrl);
     } catch (error) {
       console.warn('Invalid API_URL environment variable:', envApiUrl);
     }
@@ -32,7 +35,10 @@ function getPublicApiOrigin(request: NextRequest): string {
 
   // Fallback: Use trusted forwarded headers
   const forwardedHost = request.headers.get('x-forwarded-host');
-  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+  const forwardedProtoHeader = request.headers.get('x-forwarded-proto');
+  const isValidProto =
+    forwardedProtoHeader === 'http' || forwardedProtoHeader === 'https';
+  const forwardedProto = isValidProto ? forwardedProtoHeader : 'https';
   
   if (forwardedHost && isValidHost(forwardedHost)) {
     return `${forwardedProto}://${forwardedHost}`;

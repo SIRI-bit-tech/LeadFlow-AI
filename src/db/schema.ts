@@ -92,7 +92,7 @@ export const leads = pgTable('leads', {
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 }, (table) => ({
-  emailWorkspaceUnique: unique().on(table.email, table.workspaceId),
+  emailWorkspaceUnique: unique('leads_email_workspace_unique').on(table.email, table.workspaceId),
 }));
 
 // Conversations table

@@ -427,11 +427,11 @@
     }
 
     // Method to send a message programmatically (both display and send to server)
-    async sendProgrammaticMessage(messageText) {
+    async sendProgrammaticMessage(messageText, { openChat } = { openChat: true }) {
       if (!messageText || !messageText.trim()) return;
       
-      // Open chat if not already open
-      if (!this.isOpen) {
+      // Open chat if not already open and openChat is true
+      if (openChat && !this.isOpen) {
         this.openChat();
       }
       
@@ -562,7 +562,7 @@
         
         if (sendToServer) {
           // Send message to server (displays locally and sends API request)
-          return widget.sendProgrammaticMessage(message);
+          return widget.sendProgrammaticMessage(message, { openChat });
         } else {
           // Add message locally only (no API call)
           if (openChat && !widget.isOpen) {
