@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, users } from '@/lib/db';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { createSession } from '@/lib/session';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import bcrypt from 'bcryptjs';
@@ -43,9 +43,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Find user
+    // Find user using case-insensitive comparison
     const user = await db.query.users.findFirst({
-      where: eq(users.email, normalizedEmail),
+      where: sql`lower(${users.email}) = ${normalizedEmail}`,
     });
 
     if (!user) {

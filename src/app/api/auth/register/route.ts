@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, users, workspaces } from '@/lib/db';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { createSession } from '@/lib/session';
 import bcrypt from 'bcryptjs';
 
@@ -15,6 +15,23 @@ export async function POST(request: NextRequest) {
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: 'Name, email, and password are required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate and coerce email to string
+    if (typeof email !== 'string' || !email.trim()) {
+      return NextResponse.json(
+        { error: 'Valid email is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      return NextResponse.json(
+        { error: 'Invalid email format' },
         { status: 400 }
       );
     }
@@ -38,9 +55,9 @@ export async function POST(request: NextRequest) {
     // Normalize email for consistent uniqueness checks
     const normalizedEmail = email.trim().toLowerCase();
 
-    // Check if user already exists
+    // Check if user already exists using case-insensitive comparison
     const existingUser = await db.query.users.findFirst({
-      where: eq(users.email, normalizedEmail),
+      where: sql`lower(${users.email}) = ${normalizedEmail}`,
     });
 
     if (existingUser) {

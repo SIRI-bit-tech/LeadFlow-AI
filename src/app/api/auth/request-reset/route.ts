@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db, users, verifications } from '@/lib/db';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { checkRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import crypto from 'crypto';
 
@@ -13,6 +13,14 @@ export async function POST(request: NextRequest) {
     if (!email) {
       return NextResponse.json(
         { error: 'Email is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate email is a string
+    if (typeof email !== 'string') {
+      return NextResponse.json(
+        { error: 'Invalid email format' },
         { status: 400 }
       );
     }
@@ -53,7 +61,7 @@ export async function POST(request: NextRequest) {
     // Always return success to prevent email enumeration
     // But only actually send reset email if user exists
     const user = await db.query.users.findFirst({
-      where: eq(users.email, normalizedEmail),
+      where: sql`lower(${users.email}) = ${normalizedEmail}`,
     });
 
     if (user) {
