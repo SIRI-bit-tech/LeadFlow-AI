@@ -15,36 +15,32 @@ export async function GET(request: NextRequest) {
       .limit(1);
 
     if (demoWorkspace.length === 0) {
-      // Create demo workspace if it doesn't exist
       const demoUserId = '550e8400-e29b-41d4-a716-446655440001'; // Fixed demo user UUID
       
-      // First, ensure demo user exists (handle circular dependency)
-      const existingUser = await db
-        .select()
-        .from(users)
-        .where(eq(users.id, demoUserId))
-        .limit(1);
+      await db.transaction(async (tx) => {
+        await tx
+          .insert(users)
+          .values({
+            id: demoUserId,
+            email: 'demo@example.invalid',
+            name: 'Demo User',
+            role: 'admin',
+            workspaceId: demoId,
+            onboardingCompleted: true,
+          })
+          .onConflictDoNothing();
 
-      if (existingUser.length === 0) {
-        // Create demo user with temporary workspace ID (will be updated after workspace creation)
-        await db.insert(users).values({
-          id: demoUserId,
-          email: 'demo@example.invalid',
-          name: 'Demo User',
-          role: 'admin',
-          workspaceId: demoId, // Reference the workspace we're about to create
-          onboardingCompleted: true,
-        });
-      }
-
-      // Now create the workspace
-      await db.insert(workspaces).values({
-        id: demoId,
-        name: 'Demo Workspace',
-        industry: 'Technology',
-        companySize: '11-25',
-        website: 'https://demo.leadflow.ai',
-        ownerId: demoUserId,
+        await tx
+          .insert(workspaces)
+          .values({
+            id: demoId,
+            name: 'Demo Workspace',
+            industry: 'Technology',
+            companySize: '11-25',
+            website: 'https://demo.leadflow.ai',
+            ownerId: demoUserId,
+          })
+          .onConflictDoNothing();
       });
 
       demoWorkspace = await db

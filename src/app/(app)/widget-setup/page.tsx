@@ -628,37 +628,27 @@ if (document.readyState === 'loading') {
             <h4 className="font-medium text-purple-900 mb-2">Advanced Integration (Optional)</h4>
             <div className="text-sm text-purple-800 space-y-2">
               <p>For advanced users, you can control the widget programmatically:</p>
-              <div className="bg-purple-100 p-3 rounded font-mono text-xs space-y-2">
-                <div>
-                  <div>// Open/close widget</div>
-                  <div>window.LeadFlowAPI.open();</div>
-                  <div>window.LeadFlowAPI.close();</div>
-                  <div>window.LeadFlowAPI.toggle();</div>
-                </div>
-                
-                <div>
-                  <div>// Send messages (to server)</div>
-                  <div>window.LeadFlowAPI.sendMessage('Hello!');</div>
-                  <div>window.LeadFlowAPI.sendToServer('I need help');</div>
-                </div>
-                
-                <div>
-                  <div>// Add local messages (no server)</div>
-                  <div>window.LeadFlowAPI.addLocalMessage('Local msg');</div>
-                  <div>window.LeadFlowAPI.sendMessage('Local', &#123;</div>
-                  <div>&nbsp;&nbsp;sendToServer: false</div>
-                  <div>&#125;);</div>
-                </div>
-                
-                <div>
-                  <div>// Listen to messages & get data</div>
-                  <div>window.LeadFlowAPI.onMessage((msg) =&gt; &#123;</div>
-                  <div>&nbsp;&nbsp;// Handle new message</div>
-                  <div>&#125;);</div>
-                  <div>window.LeadFlowAPI.getMessages();</div>
-                  <div>window.LeadFlowAPI.clearMessages();</div>
-                </div>
-              </div>
+              <pre className="bg-purple-100 p-3 rounded font-mono text-xs overflow-x-auto">
+                <code>{`// Open/close widget
+window.LeadFlowAPI.open();
+window.LeadFlowAPI.close();
+window.LeadFlowAPI.toggle();
+
+// Send messages (to server)
+window.LeadFlowAPI.sendMessage('Hello!');
+window.LeadFlowAPI.sendToServer('I need help');
+
+// Add local messages (no server)
+window.LeadFlowAPI.addLocalMessage('Local msg');
+window.LeadFlowAPI.sendMessage('Local', { sendToServer: false });
+
+// Listen to messages & get data
+window.LeadFlowAPI.onMessage((msg) => {
+  // Handle new message
+});
+window.LeadFlowAPI.getMessages();
+window.LeadFlowAPI.clearMessages();`}</code>
+              </pre>
             </div>
           </div>
         </CardContent>
