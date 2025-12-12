@@ -117,7 +117,7 @@ export class ConversationService {
         .where(inArray(messages.conversationId, conversationIds))
         .groupBy(messages.conversationId);
 
-      const countMap = new Map(messageCounts.map(mc => [mc.conversationId, mc.count]));
+      const countMap = new Map(messageCounts.map(mc => [mc.conversationId, Number(mc.count ?? 0) || 0]));
 
       // Batch fetch last messages using window function filtered in SQL
       const lastMessagesCte = db.$with('last_messages').as(
