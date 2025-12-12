@@ -49,6 +49,21 @@ export async function POST(request: NextRequest) {
         ? company.trim()
         : `${trimmedName}'s Workspace`;
 
+    // Validate field lengths against database column limits
+    if (trimmedName.length > 255) {
+      return NextResponse.json(
+        { error: 'Name must be 255 characters or less' },
+        { status: 400 }
+      );
+    }
+
+    if (workspaceName.length > 255) {
+      return NextResponse.json(
+        { error: 'Company name must be 255 characters or less' },
+        { status: 400 }
+      );
+    }
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
@@ -127,8 +142,14 @@ export async function POST(request: NextRequest) {
           .returning();
 
         return { user: updatedUser, workspace };
-      } catch (txError) {
-        console.error('Transaction failed:', txError);
+      } catch (txError: any) {
+        // Log redacted error without PII
+        console.error('Transaction failed:', {
+          code: txError?.code,
+          constraint: txError?.constraint,
+          column: txError?.column,
+          message: 'Database transaction error during user registration'
+        });
         throw txError; // This will trigger rollback
       }
     });
