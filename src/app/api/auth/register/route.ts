@@ -35,9 +35,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Normalize email for consistent uniqueness checks
+    const normalizedEmail = email.trim().toLowerCase();
+
     // Check if user already exists
     const existingUser = await db.query.users.findFirst({
-      where: eq(users.email, email),
+      where: eq(users.email, normalizedEmail),
     });
 
     if (existingUser) {
@@ -66,7 +69,7 @@ export async function POST(request: NextRequest) {
         // Create user first
         const [user] = await tx.insert(users).values({
           name,
-          email,
+          email: normalizedEmail,
           passwordHash,
           workspaceId: crypto.randomUUID(), // Temporary workspace ID
           emailVerified: true, // Skip verification for now

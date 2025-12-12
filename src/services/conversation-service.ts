@@ -111,13 +111,13 @@ export class ConversationService {
       const messageCounts = await db
         .select({
           conversationId: messages.conversationId,
-          count: count(),
+          count: count().mapWith(Number),
         })
         .from(messages)
         .where(inArray(messages.conversationId, conversationIds))
         .groupBy(messages.conversationId);
 
-      const countMap = new Map(messageCounts.map(mc => [mc.conversationId, Number(mc.count ?? 0) || 0]));
+      const countMap = new Map(messageCounts.map(mc => [mc.conversationId, mc.count || 0]));
 
       // Batch fetch last messages using window function filtered in SQL
       const lastMessagesCte = db.$with('last_messages').as(
@@ -206,7 +206,7 @@ export class ConversationService {
   static async getActiveConversationsCount(workspaceId: string): Promise<number> {
     try {
       const result = await db
-        .select({ count: count() })
+        .select({ count: count().mapWith(Number) })
         .from(conversations)
         .where(and(
           eq(conversations.workspaceId, workspaceId),
@@ -224,7 +224,7 @@ export class ConversationService {
     try {
       // Get total conversations
       const totalResult = await db
-        .select({ count: count() })
+        .select({ count: count().mapWith(Number) })
         .from(conversations)
         .where(eq(conversations.workspaceId, workspaceId));
 
@@ -234,14 +234,14 @@ export class ConversationService {
       const statusResults = await db
         .select({
           status: conversations.status,
-          count: count(),
+          count: count().mapWith(Number),
         })
         .from(conversations)
         .where(eq(conversations.workspaceId, workspaceId))
         .groupBy(conversations.status);
 
       const statusCounts = statusResults.reduce((acc, { status, count }) => {
-        acc[status] = count;
+        acc[status] = count || 0;
         return acc;
       }, {} as Record<string, number>);
 
@@ -249,20 +249,20 @@ export class ConversationService {
       const sentimentResults = await db
         .select({
           sentiment: conversations.sentiment,
-          count: count(),
+          count: count().mapWith(Number),
         })
         .from(conversations)
         .where(eq(conversations.workspaceId, workspaceId))
         .groupBy(conversations.sentiment);
 
       const sentimentCounts = sentimentResults.reduce((acc, { sentiment, count }) => {
-        acc[sentiment || 'neutral'] = count;
+        acc[sentiment || 'neutral'] = count || 0;
         return acc;
       }, {} as Record<string, number>);
 
       // Get average messages per conversation
       const messageCountResult = await db
-        .select({ count: count() })
+        .select({ count: count().mapWith(Number) })
         .from(messages)
         .leftJoin(conversations, eq(messages.conversationId, conversations.id))
         .where(eq(conversations.workspaceId, workspaceId));

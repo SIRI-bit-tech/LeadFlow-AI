@@ -1,10 +1,11 @@
-import { pgTable, text, timestamp, integer, jsonb, boolean, uuid, varchar, decimal, unique } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, jsonb, boolean, uuid, varchar, decimal, unique, uniqueIndex } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 import { relations } from 'drizzle-orm';
 
 // Users table (Better Auth compatible)
 export const users = pgTable('user', {
   id: uuid('id').primaryKey().defaultRandom(),
-  email: varchar('email', { length: 255 }).notNull().unique(),
+  email: varchar('email', { length: 255 }).notNull(),
   name: varchar('name', { length: 255 }).notNull(),
   image: text('image'),
   emailVerified: boolean('emailVerified').default(false),
@@ -20,7 +21,9 @@ export const users = pgTable('user', {
   onboardingCompleted: boolean('onboarding_completed').default(false),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
-});
+}, (table) => ({
+  emailLowerUnique: uniqueIndex('user_email_lower_unique').on(sql`lower(${table.email})`),
+}));
 
 // Better Auth required tables
 export const sessions = pgTable('session', {

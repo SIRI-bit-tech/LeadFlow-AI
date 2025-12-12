@@ -17,9 +17,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(normalizedEmail)) {
       return NextResponse.json(
         { error: 'Invalid email format' },
         { status: 400 }
@@ -30,7 +32,7 @@ export async function POST(request: NextRequest) {
     const clientIP = request.headers.get('x-forwarded-for') || 
                      request.headers.get('x-real-ip') || 
                      'unknown';
-    const rateLimitIdentifier = `${clientIP}:${email}`;
+    const rateLimitIdentifier = `${clientIP}:${normalizedEmail}`;
     
     const rateLimitResult = await checkRateLimit(rateLimitIdentifier, RATE_LIMITS.PASSWORD_RESET);
     
@@ -51,7 +53,7 @@ export async function POST(request: NextRequest) {
     // Always return success to prevent email enumeration
     // But only actually send reset email if user exists
     const user = await db.query.users.findFirst({
-      where: eq(users.email, email),
+      where: eq(users.email, normalizedEmail),
     });
 
     if (user) {
@@ -66,12 +68,12 @@ export async function POST(request: NextRequest) {
         // Rate limit records have identifier pattern: password_reset:ip:email
         // Reset tokens have identifier pattern: email (no prefix)
         await tx.delete(verifications).where(
-          eq(verifications.identifier, email)
+          eq(verifications.identifier, normalizedEmail)
         );
 
         // Store reset token
         await tx.insert(verifications).values({
-          identifier: email,
+          identifier: normalizedEmail,
           value: resetToken,
           expiresAt,
         });
