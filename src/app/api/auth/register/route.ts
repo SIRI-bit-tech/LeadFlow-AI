@@ -19,10 +19,26 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate and coerce name to string
+    if (typeof name !== 'string' || !name.trim()) {
+      return NextResponse.json(
+        { error: 'Valid name is required' },
+        { status: 400 }
+      );
+    }
+
     // Validate and coerce email to string
     if (typeof email !== 'string' || !email.trim()) {
       return NextResponse.json(
         { error: 'Valid email is required' },
+        { status: 400 }
+      );
+    }
+
+    // Validate and coerce password to string
+    if (typeof password !== 'string' || !password.trim()) {
+      return NextResponse.json(
+        { error: 'Valid password is required' },
         { status: 400 }
       );
     }

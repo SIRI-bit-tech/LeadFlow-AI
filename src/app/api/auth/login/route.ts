@@ -20,6 +20,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate email and password are strings
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      return NextResponse.json(
+        { error: 'Invalid email or password' },
+        { status: 400 }
+      );
+    }
+
     // Rate limiting for login attempts
     const clientIP = request.headers.get('x-forwarded-for') || 
                      request.headers.get('x-real-ip') || 
