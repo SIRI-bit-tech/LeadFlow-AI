@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { authenticateApiRequest, isAuthError } from '@/lib/api-auth';
 import { db, users } from '@/lib/db';
-import { eq, and, ne } from 'drizzle-orm';
+import { eq, and, ne, sql } from 'drizzle-orm';
 
 export async function GET(request: NextRequest) {
   try {
@@ -121,7 +121,7 @@ export async function PUT(request: NextRequest) {
       .select()
       .from(users)
       .where(and(
-        eq(users.email, normalizedEmail),
+        sql`lower(${users.email}) = ${normalizedEmail}`,
         ne(users.id, userId)
       ))
       .limit(1);
