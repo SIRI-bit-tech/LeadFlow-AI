@@ -359,9 +359,20 @@
       this.isOpen = false;
     }
 
-    async sendMessage() {
+    async sendMessage(messageText = null) {
       const input = document.getElementById('leadflow-input');
-      const message = input.value.trim();
+      let message;
+      
+      if (messageText) {
+        // Use provided message text
+        message = messageText.trim();
+        // Set input value for visual feedback
+        input.value = message;
+        this.autoResize(input);
+      } else {
+        // Use input field value
+        message = input.value.trim();
+      }
       
       if (!message) return;
       
@@ -408,6 +419,24 @@
         this.hideTyping();
         this.addMessage('Sorry, I\'m having trouble connecting right now. Please try again later.', 'bot');
       }
+    }
+
+    // Method to add a message locally without sending to server
+    addLocalMessage(text, sender = 'user') {
+      this.addMessage(text, sender);
+    }
+
+    // Method to send a message programmatically (both display and send to server)
+    async sendProgrammaticMessage(messageText) {
+      if (!messageText || !messageText.trim()) return;
+      
+      // Open chat if not already open
+      if (!this.isOpen) {
+        this.openChat();
+      }
+      
+      // Send the message
+      await this.sendMessage(messageText.trim());
     }
 
     addMessage(text, sender) {
@@ -520,9 +549,52 @@
       close: () => widget.closeChat(),
       toggle: () => widget.toggleChat(),
       isOpen: () => widget.isOpen,
-      sendMessage: (message) => widget.addMessage(message, 'user'),
+      
+      // Enhanced sendMessage method with multiple modes
+      sendMessage: (message, options = {}) => {
+        if (!message) return;
+        
+        const { 
+          sendToServer = true,  // Whether to send to server (default: true)
+          sender = 'user',      // Message sender (default: 'user')
+          openChat = true       // Whether to open chat if closed (default: true)
+        } = options;
+        
+        if (sendToServer) {
+          // Send message to server (displays locally and sends API request)
+          return widget.sendProgrammaticMessage(message);
+        } else {
+          // Add message locally only (no API call)
+          if (openChat && !widget.isOpen) {
+            widget.openChat();
+          }
+          widget.addLocalMessage(message, sender);
+        }
+      },
+      
+      // Convenience methods for specific use cases
+      sendToServer: (message) => widget.sendProgrammaticMessage(message),
+      addLocalMessage: (message, sender = 'user') => widget.addLocalMessage(message, sender),
+      
+      // Event callback
       onMessage: (callback) => {
         widget.onMessageCallback = callback;
+      },
+      
+      // Additional utility methods
+      getMessages: () => widget.messages,
+      getConversationId: () => widget.conversationId,
+      clearMessages: () => {
+        widget.messages = [];
+        const messagesContainer = document.getElementById('leadflow-messages');
+        if (messagesContainer) {
+          // Keep only the initial bot message and typing indicator
+          const initialMessage = messagesContainer.querySelector('.leadflow-message.bot');
+          const typingIndicator = document.getElementById('leadflow-typing');
+          messagesContainer.innerHTML = '';
+          if (initialMessage) messagesContainer.appendChild(initialMessage);
+          if (typingIndicator) messagesContainer.appendChild(typingIndicator);
+        }
       }
     };
   }
