@@ -24,7 +24,8 @@ export async function POST(request: NextRequest) {
     const clientIP = request.headers.get('x-forwarded-for') || 
                      request.headers.get('x-real-ip') || 
                      'unknown';
-    const rateLimitIdentifier = `${clientIP}:${email}`;
+    const normalizedEmail = email.trim().toLowerCase();
+    const rateLimitIdentifier = `${clientIP}:${normalizedEmail}`;
     
     const rateLimitResult = await checkRateLimit(rateLimitIdentifier, RATE_LIMITS.LOGIN_ATTEMPTS);
     
@@ -44,7 +45,7 @@ export async function POST(request: NextRequest) {
 
     // Find user
     const user = await db.query.users.findFirst({
-      where: eq(users.email, email),
+      where: eq(users.email, normalizedEmail),
     });
 
     if (!user) {
