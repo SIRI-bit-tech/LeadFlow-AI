@@ -10,6 +10,11 @@ export const metadata: Metadata = {
   keywords: 'lead qualification, AI, B2B, sales automation, lead scoring',
   authors: [{ name: 'LeadFlow AI Team' }],
   viewport: 'width=device-width, initial-scale=1',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/logo-icon.svg',
+  },
 };
 
 export default function RootLayout({
