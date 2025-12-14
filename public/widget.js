@@ -5,7 +5,7 @@
   class LeadFlowWidget {
     constructor(config = {}) {
       this.config = {
-        apiUrl: config.apiUrl || 'https://your-domain.com',
+        apiUrl: config.apiUrl || 'https://leadflows-ai.vercel.app',
         workspaceId: config.workspaceId || 'default-workspace',
         position: config.position || 'bottom-right',
         primaryColor: config.primaryColor || '#0A4D68',

@@ -2,6 +2,8 @@
 
 **Transform Your Lead Generation with Intelligent AI Qualification**
 
+🚀 **[Live Demo](https://leadflows-ai.vercel.app)** | 📚 **[GitHub Repository](https://github.com/SIRI-bit-tech/LeadFlow-AI)**
+
 LeadFlow AI is a comprehensive, production-ready SaaS platform that revolutionizes how businesses qualify and manage leads. Built with cutting-edge AI technology, it automatically engages prospects in natural conversations, scores their potential, and seamlessly schedules meetings with your sales team.
 
 ## 🎯 How LeadFlow AI Works
@@ -123,7 +125,7 @@ LeadFlow AI is a comprehensive, production-ready SaaS platform that revolutioniz
 
 ### For Companies: Get Started in 5 Minutes
 
-1. **Sign Up**: Visit [leadflow.ai](https://leadflow.ai) and create your account
+1. **Sign Up**: Visit [https://leadflows-ai.vercel.app](https://leadflows-ai.vercel.app) and create your account
 2. **Complete Onboarding**: Set up your company profile and preferences  
 3. **Get Widget Code**: Copy the simple script tag from your dashboard
 4. **Add to Website**: Paste the code before `</body>` tag on your site
@@ -132,7 +134,7 @@ LeadFlow AI is a comprehensive, production-ready SaaS platform that revolutioniz
 **Widget Integration Example:**
 ```html
 <!-- Add this to your website -->
-<script src="https://leadflow.ai/widget.js" 
+<script src="https://leadflows-ai.vercel.app/widget.js" 
   data-workspace-id="your-workspace-id"
   data-title="Chat with Acme Corp"
   data-primary-color="#0A4D68"></script>
@@ -549,11 +551,10 @@ We welcome contributions from the community!
 
 ### 🆘 Support & Community
 
-- **Documentation**: [docs.leadflow.ai](https://docs.leadflow.ai)
+- **Live Demo**: [https://leadflows-ai.vercel.app](https://leadflows-ai.vercel.app)
 - **Issues**: [GitHub Issues](https://github.com/SIRI-bit-tech/LeadFlow-AI/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/SIRI-bit-tech/LeadFlow-AI/discussions)
-- **Email**: hello@leadflow.ai
-- **Discord**: [Join our community](https://discord.gg/leadflow-ai)
+- **Repository**: [https://github.com/SIRI-bit-tech/LeadFlow-AI](https://github.com/SIRI-bit-tech/LeadFlow-AI)
 
 ### 🌟 Show Your Support
 
@@ -640,9 +641,10 @@ GOOGLE_CLIENT_ID="..."
 **MIT License** - Use freely for any purpose, including commercial.
 
 **Support:**
+- **Live Demo**: [https://leadflows-ai.vercel.app](https://leadflows-ai.vercel.app)
+- **GitHub Repository**: [https://github.com/SIRI-bit-tech/LeadFlow-AI](https://github.com/SIRI-bit-tech/LeadFlow-AI)
 - GitHub Issues for bugs
 - GitHub Discussions for questions
-- Email: hello@leadflow.ai
 
 ---
 
