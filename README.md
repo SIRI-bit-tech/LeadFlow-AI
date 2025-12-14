@@ -210,8 +210,12 @@ bun run dev
 ```
 Visit `http://localhost:3000` - you're ready to develop!
 
+**Or try the live demo:** [https://leadflows-ai.vercel.app](https://leadflows-ai.vercel
+
 #### 5. Test the Widget
 Visit `http://localhost:3000/test-widget` to see the AI chat in action.
+
+**Or test the live widget:** [https://leadflows-ai.vercel.app/test-widget](https://leadflows-ai.vercel.app/test-widget)
 
 ## Available Scripts
 
