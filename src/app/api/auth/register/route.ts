@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     if (workspaceName.length > 255) {
       return NextResponse.json(
-        { error: 'Company name must be 255 characters or less' },
+        { error: 'Workspace name must be 255 characters or less' },
         { status: 400 }
       );
     }

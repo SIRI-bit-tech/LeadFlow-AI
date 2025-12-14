@@ -1,4 +1,3 @@
-import { MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AuthLayout({
@@ -10,11 +9,9 @@ export default function AuthLayout({
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center space-x-2">
-            <div className="w-10 h-10 gradient-ocean rounded-lg flex items-center justify-center">
-              <MessageSquare className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-primary">LeadFlow AI</span>
+          <Link href="/" className="inline-flex items-center space-x-4">
+            <img src="/logo-icon.svg" alt="LeadFlow AI" className="w-16 h-16" />
+            <span className="text-4xl font-bold text-primary">LeadFlow AI</span>
           </Link>
         </div>
         <div className="bg-white rounded-lg shadow-lg p-8">

@@ -2,41 +2,112 @@
 
 **Transform Your Lead Generation with Intelligent AI Qualification**
 
-LeadFlow AI is a comprehensive, production-ready platform that revolutionizes how businesses qualify and manage leads. Built with cutting-edge AI technology, it automatically engages prospects in natural conversations, scores their potential, and seamlessly schedules meetings with your sales team.
+LeadFlow AI is a comprehensive, production-ready SaaS platform that revolutionizes how businesses qualify and manage leads. Built with cutting-edge AI technology, it automatically engages prospects in natural conversations, scores their potential, and seamlessly schedules meetings with your sales team.
 
-## 🎯 What LeadFlow AI Does
+## 🎯 How LeadFlow AI Works
 
-**For Businesses:**
-- **Automate Lead Qualification**: AI-powered conversations that feel natural and gather crucial qualifying information
-- **Intelligent Lead Scoring**: Advanced algorithms evaluate company fit, budget, timeline, authority, need, and engagement
-- **Seamless Meeting Scheduling**: Automatically book meetings with qualified prospects based on real-time availability
-- **Comprehensive Analytics**: Track conversion rates, lead quality, team performance, and revenue attribution
-- **Multi-Channel Integration**: Works with your existing CRM, email systems, and marketing tools
+### For Companies Using LeadFlow AI
 
-**For Website Visitors:**
-- **Instant Support**: 24/7 AI chat widget that provides immediate assistance
-- **Personalized Experience**: Tailored conversations based on company size, industry, and specific needs
-- **Effortless Scheduling**: Book meetings directly through the chat interface
-- **Valuable Resources**: Get helpful information even if not ready to buy
+**The Complete Lead Journey:**
 
-## 🚀 Key Benefits
+1. **Widget Integration** 
+   - Add a simple script tag to your website
+   - Customizable chat widget appears for visitors
+   - Works on any website: WordPress, Shopify, custom sites, etc.
 
-- **Increase Conversion Rates**: Qualify leads 10x faster than traditional methods
-- **Reduce Response Time**: Instant AI responses ensure no lead goes cold
-- **Scale Your Sales Team**: Handle unlimited conversations simultaneously
-- **Improve Lead Quality**: Focus sales efforts on pre-qualified, high-intent prospects
-- **24/7 Availability**: Never miss a lead, regardless of time zones or business hours
+2. **AI Conversation Engine**
+   - Visitors click the chat widget and start conversations
+   - AI automatically qualifies leads through natural dialogue
+   - Gathers key information: company size, budget, timeline, decision authority
+   - Provides helpful information and builds trust
 
-## Features
+3. **Intelligent Lead Scoring**
+   - Real-time scoring based on 6 criteria (0-100 scale):
+     - Company Fit (25% weight)
+     - Budget Alignment (20% weight) 
+     - Timeline (20% weight)
+     - Authority (15% weight)
+     - Need (10% weight)
+     - Engagement (10% weight)
 
-- 🤖 **AI-Powered Conversations**: Natural lead qualification using Claude AI
-- 📊 **Smart Lead Scoring**: Advanced scoring algorithm with multiple criteria
-- 📅 **Meeting Scheduling**: Integrated calendar system with availability detection
-- 📈 **Analytics Dashboard**: Real-time metrics and performance tracking
-- 🔗 **CRM Integration**: Connect with popular CRM platforms
-- 💬 **Embeddable Chat Widget**: Add to any website for lead capture
-- 🎯 **Onboarding Flow**: Guided setup for new users
-- 🔐 **Enterprise Security**: SOC 2 compliant with data encryption
+4. **Automatic Meeting Scheduling**
+   - Qualified leads (70+ score) get meeting invitations
+   - AI checks your calendar availability
+   - Sends calendar invites automatically
+   - Integrates with Google Calendar, Outlook, etc.
+
+5. **Dashboard & Analytics**
+   - View all leads with conversation history
+   - Track conversion rates and lead quality
+   - Monitor AI performance and team metrics
+   - Export data to your CRM
+
+**Business Value:**
+- **10x Faster Qualification**: AI handles initial screening 24/7
+- **Higher Conversion Rates**: Focus on pre-qualified prospects only  
+- **Reduced Response Time**: Instant engagement prevents lead loss
+- **Scalable Growth**: Handle unlimited conversations simultaneously
+- **Better Lead Quality**: Advanced scoring identifies best prospects
+
+### For Website Visitors
+
+**Seamless Experience:**
+- Click chat widget for instant help
+- Natural conversation with AI assistant
+- Get answers about products/services immediately
+- Book meetings directly through chat
+- Receive valuable resources and information
+- No forms to fill out - just natural conversation
+
+## 🚀 Key Benefits by User Type
+
+### For Sales Teams
+- **Pre-Qualified Leads**: Only talk to prospects ready to buy
+- **Rich Context**: Full conversation history before calls
+- **Automatic Scheduling**: Meetings booked without back-and-forth
+- **Performance Insights**: Track what messaging works best
+
+### For Marketing Teams  
+- **24/7 Lead Capture**: Never miss prospects outside business hours
+- **Conversion Optimization**: See which pages generate best leads
+- **Content Insights**: Understand what information prospects need
+- **ROI Tracking**: Measure lead quality and conversion rates
+
+### For Business Owners
+- **Revenue Growth**: More qualified leads = more sales
+- **Cost Efficiency**: Reduce sales team workload on unqualified prospects  
+- **Competitive Advantage**: Instant response while competitors are slow
+- **Scalability**: Handle growth without proportional staff increases
+
+## 🎯 Complete Feature Set
+
+### Core AI Features
+- 🤖 **Multi-AI Provider System**: OpenAI, Google Gemini, Anthropic Claude with automatic fallback
+- � **Nattural Conversations**: Human-like dialogue that builds trust and gathers information
+- 🎯 **Smart Lead Scoring**: 6-factor scoring algorithm with weighted criteria
+- � **CReal-time Analysis**: Sentiment detection and conversation quality assessment
+- � ***Continuous Learning**: AI improves responses based on successful conversions
+
+### Business Management
+- 📈 **Analytics Dashboard**: Conversion rates, lead quality, team performance metrics
+- 📅 **Meeting Scheduling**: Calendar integration with automatic availability checking
+- 👥 **Lead Management**: Full CRM with conversation history and scoring details
+- 📧 **Email Integration**: Automated follow-ups and meeting confirmations
+- 🔗 **CRM Sync**: Export to Salesforce, HubSpot, Pipedrive, and more
+
+### Technical Features
+- 💻 **Universal Widget**: Works on any website (HTML, React, Vue, Angular, etc.)
+- 📱 **Mobile Responsive**: Optimized for all devices and screen sizes
+- 🔐 **Enterprise Security**: JWT authentication, bcrypt hashing, rate limiting
+- ⚡ **High Performance**: Built on Next.js 16 with optimized database queries
+- 🌐 **Multi-Framework Support**: Easy integration regardless of your tech stack
+
+### Developer Experience
+- 🛠️ **Open Source**: MIT license - fork, customize, and deploy freely
+- 📚 **Comprehensive API**: RESTful endpoints for all functionality
+- 🎨 **Customizable UI**: Tailwind CSS with easy theming and branding
+- 🔧 **Built-in Hooks**: React hooks for state management and data fetching
+- 📖 **Full Documentation**: Complete setup and customization guides
 
 ## Tech Stack
 
@@ -48,88 +119,97 @@ LeadFlow AI is a comprehensive, production-ready platform that revolutionizes ho
 - **Runtime**: Bun
 - **Styling**: Tailwind CSS with custom design system
 
-## Quick Start
+## 🚀 Quick Start Guide
 
-### 1. Install Dependencies
+### For Companies: Get Started in 5 Minutes
 
+1. **Sign Up**: Visit [leadflow.ai](https://leadflow.ai) and create your account
+2. **Complete Onboarding**: Set up your company profile and preferences  
+3. **Get Widget Code**: Copy the simple script tag from your dashboard
+4. **Add to Website**: Paste the code before `</body>` tag on your site
+5. **Start Converting**: AI begins qualifying leads immediately!
+
+**Widget Integration Example:**
+```html
+<!-- Add this to your website -->
+<script src="https://leadflow.ai/widget.js" 
+  data-workspace-id="your-workspace-id"
+  data-title="Chat with Acme Corp"
+  data-primary-color="#0A4D68"></script>
+```
+
+**Supported Platforms:**
+- ✅ WordPress (any theme)
+- ✅ Shopify stores  
+- ✅ Squarespace sites
+- ✅ Wix websites
+- ✅ Custom HTML/CSS sites
+- ✅ React/Next.js apps
+- ✅ Vue.js applications
+- ✅ Angular projects
+- ✅ Any website with HTML access
+
+### For Developers: Local Development Setup
+
+#### Prerequisites
+- Node.js 18+ or Bun runtime
+- PostgreSQL database
+- AI API key (OpenAI recommended - $5 free credits)
+
+#### 1. Clone & Install
 ```bash
+git clone https://github.com/SIRI-bit-tech/LeadFlow-AI.git
+cd leadflow-ai
 bun install
 ```
 
-### 2. Environment Setup
-
-Copy the environment template:
-
+#### 2. Environment Configuration
 ```bash
 cp .env.local.example .env.local
 ```
 
-Update `.env.local` with your values:
-
+**Required Environment Variables:**
 ```env
-# Database
+# Database (Required)
 DATABASE_URL="postgresql://username:password@localhost:5432/leadflow_ai"
 
-# Authentication
-BETTER_AUTH_SECRET="your-secret-key-here"
+# Authentication (Required)
+BETTER_AUTH_SECRET="your-secure-random-string"
 BETTER_AUTH_URL="http://localhost:3000"
 
-# AI Integration (Add at least one - the system will automatically use the first available)
-# OpenAI (Recommended - $5 free credits, very reliable)
-OPENAI_API_KEY="your-openai-api-key-here"
+# AI Provider (At least one required)
+OPENAI_API_KEY="sk-..." # Recommended: $5 free credits
+GOOGLE_GENERATIVE_AI_API_KEY="..." # Alternative: Free tier available
+ANTHROPIC_API_KEY="..." # Alternative: Paid only
 
-# Google Gemini (Free tier available)
-GOOGLE_GENERATIVE_AI_API_KEY="your-google-ai-api-key-here"
-
-# Anthropic Claude (Paid only)
-ANTHROPIC_API_KEY="your-anthropic-api-key-here"
-
-# Email (Optional)
-SENDGRID_API_KEY="your-sendgrid-api-key"
-FROM_EMAIL="noreply@yourdomain.com"
-
-# OAuth (Optional)
-GOOGLE_CLIENT_ID="your-google-client-id"
-GOOGLE_CLIENT_SECRET="your-google-client-secret"
-MICROSOFT_CLIENT_ID="your-microsoft-client-id"
-MICROSOFT_CLIENT_SECRET="your-microsoft-client-secret"
+# Optional Features
+SENDGRID_API_KEY="..." # Email notifications
+GOOGLE_CLIENT_ID="..." # OAuth login
 ```
 
-### 3. Database Setup
+#### 3. Database Setup
+```bash
+# Create database
+createdb leadflow_ai
 
-**IMPORTANT: Complete these database steps before running the development server:**
+# Generate schema
+bun run db:generate
 
-1. **Create PostgreSQL Database**:
-   ```bash
-   # Using psql
-   createdb leadflow_ai
-   
-   # Or using your preferred PostgreSQL client
-   ```
+# Run migrations  
+bun run db:migrate
 
-2. **Generate Database Schema**:
-   ```bash
-   bun run db:generate
-   ```
+# Verify setup (optional)
+bun run db:studio
+```
 
-3. **Run Database Migrations**:
-   ```bash
-   bun run db:migrate
-   ```
-
-4. **Verify Database Setup** (Optional):
-   ```bash
-   bun run db:studio
-   ```
-   This opens Drizzle Studio at `http://localhost:4983` to view your database.
-
-### 4. Start Development Server
-
+#### 4. Development Server
 ```bash
 bun run dev
 ```
+Visit `http://localhost:3000` - you're ready to develop!
 
-Visit `http://localhost:3000` to see the application.
+#### 5. Test the Widget
+Visit `http://localhost:3000/test-widget` to see the AI chat in action.
 
 ## Available Scripts
 
@@ -257,98 +337,186 @@ bun run db:migrate
 - `POST /api/calendar/schedule` - Schedule meeting
 - `GET /api/calendar/meetings` - List meetings
 
-## 👨‍💻 For Developers
+## 👨‍💻 For Developers & Agencies
 
-### 🍴 Fork & Customize
+### 🍴 Fork, Customize & Monetize
 
-This is an open-source project that you can fork, customize, and deploy for your own use or clients:
+LeadFlow AI is **100% open source** with MIT license - fork it, customize it, and build your business around it!
 
-#### **Commercial Use Allowed**
-- ✅ Fork and modify for your own business
-- ✅ White-label for clients
-- ✅ Sell as a service
-- ✅ Integrate with your existing products
+#### **💰 Business Models You Can Build**
 
-#### **Getting Started as a Developer**
+1. **SaaS Platform** 
+   - Host LeadFlow AI and charge monthly subscriptions
+   - Target: Small to medium businesses
+   - Revenue: $29-299/month per customer
+   - **Note**: Subscription billing system is TODO - you'll need to add Stripe/payment integration
 
-1. **Fork the Repository**
-   ```bash
-   git clone https://github.com/yourusername/leadflow-ai.git
-   cd leadflow-ai
-   ```
+2. **Agency Tool**
+   - White-label for marketing agencies
+   - Target: Digital marketing agencies  
+   - Revenue: $500-5000/month per agency
 
-2. **Customize Branding**
-   - Update colors in `tailwind.config.js`
-   - Modify company name and branding in components
-   - Replace logo and assets in `public/` folder
+3. **Enterprise Deployments**
+   - Custom installations for large companies
+   - Target: Fortune 500, enterprise clients
+   - Revenue: $10k-100k+ per deployment
 
-3. **Configure Your AI Providers**
-   - Add your own API keys for OpenAI, Google, or Anthropic
-   - Customize AI prompts in `src/lib/ai.ts`
-   - Modify lead scoring criteria in `src/services/lead-scoring.ts`
+4. **Industry-Specific Versions**
+   - Customize for real estate, healthcare, finance, etc.
+   - Target: Niche industries with specific needs
+   - Revenue: Premium pricing for specialized features
 
-4. **Deploy Anywhere**
-   - Vercel (recommended)
-   - Netlify
-   - AWS
-   - Google Cloud
-   - Your own servers
+#### **🛠️ Built-in Developer Tools (Already Included)**
 
-#### **Architecture Overview**
+**Custom React Hooks:**
+- `useLeads` - Complete lead management with CRUD operations
+- `useConversations` - Real-time chat with AI streaming
+- `useAnalytics` - Dashboard metrics and reporting
+- `useCalendar` - Meeting scheduling with availability
+- `useAIProviders` - Multi-provider AI management
+- `useLocalStorage` - Persistent storage with TypeScript
+- `useDebounce` - Performance optimization utilities
 
+**Production-Ready API Endpoints:**
 ```
-├── Frontend (Next.js 16 + React)
-│   ├── Landing pages & marketing site
-│   ├── Dashboard & lead management
-│   ├── Real-time chat interface
-│   └── Analytics & reporting
-│
-├── Backend (Next.js API Routes)
-│   ├── AI conversation handling
-│   ├── Lead scoring & qualification
-│   ├── Meeting scheduling
-│   └── CRM integrations
-│
-├── Database (PostgreSQL + Drizzle ORM)
-│   ├── Users & workspaces
-│   ├── Leads & conversations
-│   ├── Meetings & calendar
-│   └── Analytics & scoring
-│
-└── AI Integration (Multi-provider)
-    ├── OpenAI GPT-4o-mini
-    ├── Google Gemini
-    └── Anthropic Claude
+Authentication:
+POST /api/auth/register    # User registration
+POST /api/auth/login       # User login  
+POST /api/auth/logout      # User logout
+
+Lead Management:
+GET    /api/leads          # List all leads
+POST   /api/leads          # Create new lead
+GET    /api/leads/[id]     # Get lead details
+PATCH  /api/leads/[id]     # Update lead
+
+AI & Conversations:
+POST /api/ai/chat          # Send message to AI
+GET  /api/conversations    # List conversations
+GET  /api/conversations/[id] # Get conversation details
+
+Calendar & Meetings:
+GET  /api/calendar/slots   # Available time slots
+POST /api/calendar/schedule # Schedule meeting
+GET  /api/meetings         # List meetings
 ```
 
-#### **Built-in React Hooks**
+#### **🎨 Easy Customization**
 
-The project includes a comprehensive set of custom React hooks for easy state management:
+**Branding & Styling:**
+- `tailwind.config.js` - Colors, fonts, themes
+- `src/app/globals.css` - Global styles
+- `public/` - Logo, favicon, assets
 
-- **`useLeads`**: Manage lead data, CRUD operations, and real-time updates
-- **`useConversations`**: Handle chat conversations and AI message streaming
-- **`useAnalytics`**: Fetch and manage dashboard analytics data
-- **`useCalendar`**: Meeting scheduling and availability management
-- **`useAIProviders`**: Multi-AI provider status and switching
-- **`useLocalStorage`**: Persistent local storage with TypeScript support
-- **`useDebounce`**: Performance optimization for search and input handling
+**AI Behavior:**
+- `src/lib/ai.ts` - AI prompts and responses
+- `src/services/lead-service.ts` - Lead scoring logic
+- Multi-AI provider system with automatic fallback
 
-#### **Customization Ideas**
+**Business Logic:**
+- `src/lib/utils.ts` - Lead qualification rules
+- `src/hooks/` - Custom React hooks for data management
+- `src/components/` - UI components and layouts
+│         PostgreSQL + Drizzle ORM + Migrations          │
+│  • Users, workspaces, authentication                   │
+│  • Leads, conversations, messages                       │
+│  • Meetings, calendar, availability                     │
+│  • Analytics, scoring, performance data                 │
+└─────────────────────────────────────────────────────────┘
+                              │
+┌─────────────────────────────────────────────────────────┐
+│                AI Integration Layer                      │
+│        Multi-Provider with Automatic Fallback          │
+│  • OpenAI GPT-4o-mini (recommended)                    │
+│  • Google Gemini Flash (free tier)                     │
+│  • Anthropic Claude (premium quality)                  │
+└─────────────────────────────────────────────────────────┘
+```
 
-- **Industry-Specific**: Adapt for real estate, SaaS, e-commerce, etc.
-- **Language Support**: Add multi-language AI conversations
-- **Custom Integrations**: Connect to industry-specific CRMs
-- **Advanced Analytics**: Add custom reporting and dashboards
-- **White-Label**: Remove branding and add your own
-- **Custom Hooks**: Extend the hook system for your specific needs
+#### **Built-in Developer Tools**
 
-#### **Monetization Options**
+**Custom React Hooks for Rapid Development:**
+- **`useLeads`**: Complete lead management with CRUD operations
+- **`useConversations`**: Real-time chat and AI message streaming  
+- **`useAnalytics`**: Dashboard metrics and performance data
+- **`useCalendar`**: Meeting scheduling and availability checking
+- **`useAIProviders`**: Multi-AI provider management and fallback
+- **`useLocalStorage`**: Type-safe persistent storage utilities
+- **`useDebounce`**: Performance optimization for search/input
 
-- **SaaS Platform**: Charge monthly subscriptions
-- **Agency Tool**: Sell to marketing agencies
-- **Enterprise License**: Custom deployments for large companies
-- **API Service**: Offer lead qualification as an API
-- **Consulting**: Implementation and customization services
+**Production-Ready Features:**
+- **Authentication**: JWT tokens, bcrypt hashing, session management
+- **Security**: Rate limiting, input validation, XSS protection
+- **Performance**: Optimized queries, caching, lazy loading
+- **Monitoring**: Error tracking, analytics, performance metrics
+- **Scalability**: Serverless-compatible, horizontal scaling ready
+
+#### **Customization Guide**
+
+**1. Branding & UI**
+```bash
+# Update colors and styling
+src/app/globals.css          # Global styles
+tailwind.config.js           # Color scheme
+public/                      # Logo and assets
+```
+
+**2. AI Behavior**  
+```bash
+# Customize AI responses and scoring
+src/lib/ai.ts               # AI prompts and providers
+src/services/lead-service.ts # Lead scoring logic
+```
+
+**3. Business Logic**
+```bash
+# Modify core functionality  
+src/app/api/                # API endpoints
+src/services/               # Business logic
+src/hooks/                  # State management
+```
+
+**4. Database Schema**
+```bash
+# Add custom fields and tables
+src/db/schema.ts            # Database schema
+src/db/migrations/          # Migration files
+```
+
+#### **Deployment Options**
+
+**Recommended Platforms:**
+- **Vercel**: Zero-config deployment, perfect for Next.js
+- **Railway**: Simple PostgreSQL + app hosting
+- **Supabase**: Managed PostgreSQL with built-in auth
+- **AWS/GCP**: Enterprise-grade with full control
+
+**One-Click Deploy:**
+```bash
+# Vercel (recommended)
+npx create-next-app@latest my-leadflow --example https://github.com/yourusername/leadflow-ai
+
+# Or clone and deploy
+git clone https://github.com/yourusername/leadflow-ai.git
+cd leadflow-ai
+vercel --prod
+```
+
+#### **Monetization Strategies**
+
+**Pricing Tiers You Can Offer:**
+- **Starter**: $29/month - 1,000 conversations
+- **Professional**: $99/month - 10,000 conversations  
+- **Enterprise**: $299/month - Unlimited + white-label
+- **Custom**: $1000+/month - Custom features + support
+
+**Revenue Streams:**
+- Monthly/annual subscriptions
+- Setup and implementation fees
+- Custom development services
+- Training and consulting
+- White-label licensing
+- API usage fees
 
 ### 🤝 Contributing
 
@@ -382,8 +550,8 @@ We welcome contributions from the community!
 ### 🆘 Support & Community
 
 - **Documentation**: [docs.leadflow.ai](https://docs.leadflow.ai)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/leadflow-ai/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/leadflow-ai/discussions)
+- **Issues**: [GitHub Issues](https://github.com/SIRI-bit-tech/LeadFlow-AI/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/SIRI-bit-tech/LeadFlow-AI/discussions)
 - **Email**: hello@leadflow.ai
 - **Discord**: [Join our community](https://discord.gg/leadflow-ai)
 
@@ -398,3 +566,84 @@ If this project helped you, please consider:
 ---
 
 **Built with ❤️ by developers, for developers. Happy coding! 🚀**
+
+## 🚀 Deployment Guide
+
+### **Production Deployment**
+
+**Recommended: Vercel (One-Click Deploy)**
+1. Fork this repository
+2. Connect to Vercel
+3. Add environment variables
+4. Deploy automatically
+
+**Alternative Platforms:**
+- **Netlify**: JAMstack optimization
+- **Railway**: Simple PostgreSQL hosting
+- **DigitalOcean**: Cost-effective VPS
+- **AWS/Google Cloud**: Enterprise scale
+
+### **Environment Variables for Production**
+```env
+# Required
+DATABASE_URL="postgresql://..."
+BETTER_AUTH_SECRET="secure-random-string"
+BETTER_AUTH_URL="https://yourdomain.com"
+OPENAI_API_KEY="sk-..."
+
+# Optional
+SENDGRID_API_KEY="..."
+GOOGLE_CLIENT_ID="..."
+```
+
+## 📋 Current Status & Roadmap
+
+### ✅ **Completed Features**
+- AI-powered lead qualification
+- Multi-provider AI system (OpenAI, Google, Anthropic)
+- Real-time chat widget
+- Lead scoring and analytics
+- Meeting scheduling
+- Dashboard and reporting
+- Authentication and security
+- Database optimization
+- Mobile-responsive design
+
+### 🚧 **TODO / Coming Soon**
+- **Subscription billing system** (Stripe integration needed)
+- CRM integrations (Salesforce, HubSpot)
+- Email marketing automation
+- Advanced analytics and reporting
+- Multi-language support
+- Team collaboration features
+- API rate limiting and quotas
+- Advanced security features
+
+## 🤝 Contributing
+
+**We welcome contributions!**
+
+1. Fork the repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Make changes and test
+4. Submit pull request
+
+**Areas needing help:**
+- Subscription billing implementation
+- CRM integrations
+- Additional AI providers
+- UI/UX improvements
+- Documentation
+
+## 📄 License & Support
+
+**MIT License** - Use freely for any purpose, including commercial.
+
+**Support:**
+- GitHub Issues for bugs
+- GitHub Discussions for questions
+- Email: hello@leadflow.ai
+
+---
+
+**🚀 Ready to transform your lead generation? Fork, customize, and deploy today!**

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -87,14 +87,12 @@ export function AppSidebar({ user, workspace }: AppSidebarProps) {
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         {!collapsed && (
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 gradient-ocean rounded-lg flex items-center justify-center">
-              <MessageSquare className="w-5 h-5 text-white" />
-            </div>
+          <div className="flex items-center gap-4">
+            <img src="/logo-icon.svg" alt="LeadFlow AI" className="w-12 h-12" />
             <div>
-              <h1 className="text-lg font-bold text-primary">LeadFlow AI</h1>
+              <h1 className="text-2xl font-bold text-primary">LeadFlow AI</h1>
               {workspace && (
-                <p className="text-xs text-gray-500">{workspace.name}</p>
+                <p className="text-sm text-gray-500">{workspace.name}</p>
               )}
             </div>
           </div>

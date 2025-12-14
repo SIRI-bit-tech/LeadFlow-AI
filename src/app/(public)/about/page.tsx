@@ -54,8 +54,9 @@ export default function AboutPage() {
       {/* Header */}
       <header className="border-b bg-white/80 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-[#0A4D68]">
-            LeadFlow AI
+          <Link href="/" className="flex items-center gap-4">
+            <img src="/logo-icon.svg" alt="LeadFlow AI" className="w-14 h-14" />
+            <span className="text-3xl font-bold text-[#0A4D68]">LeadFlow AI</span>
           </Link>
           <div className="space-x-4">
             <Link href="/login">
