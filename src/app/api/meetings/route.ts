@@ -64,6 +64,7 @@ export async function GET(request: NextRequest) {
           name: leads.name,
           email: leads.email,
           company: leads.company,
+          classification: leads.classification,
         },
       })
       .from(meetings)

@@ -75,7 +75,7 @@ export default function MeetingsPage() {
           </p>
         </div>
         <div className="flex items-center space-x-3">
-          <Button variant="outline" onClick={fetchMeetings} disabled={loading}>
+          <Button variant="outline" onClick={() => fetchMeetings()} disabled={loading}>
             <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
@@ -179,7 +179,7 @@ export default function MeetingsPage() {
           <div className="flex items-center justify-center py-12">
             <div className="text-center">
               <p className="text-red-600 mb-4">Error loading meetings: {error}</p>
-              <Button onClick={fetchMeetings}>Try Again</Button>
+              <Button onClick={() => fetchMeetings()}>Try Again</Button>
             </div>
           </div>
         ) : filteredMeetings.map((meeting) => (
@@ -202,10 +202,16 @@ export default function MeetingsPage() {
                         {meeting.status}
                       </Badge>
                       {meeting.lead?.classification && (
-                        <Badge variant={meeting.lead.classification as any}>
+                        <Badge variant="outline" className={`${
+                          meeting.lead.classification === 'hot' ? 'border-red-500 text-red-700' :
+                          meeting.lead.classification === 'warm' ? 'border-orange-500 text-orange-700' :
+                          meeting.lead.classification === 'cold' ? 'border-blue-500 text-blue-700' :
+                          'border-gray-500 text-gray-700'
+                        }`}>
                           {meeting.lead.classification}
                         </Badge>
                       )}
+
                     </div>
                     
                     <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">

@@ -11,12 +11,23 @@ export interface TimeSlot {
 export interface Meeting {
   id: string;
   title: string;
-  start: Date;
-  end: Date;
-  description?: string;
-  leadId?: string;
-  type: 'meeting' | 'call' | 'demo';
+  scheduledAt: Date;
+  duration: number;
+  leadId: string;
+  type?: 'meeting' | 'call' | 'demo';
   status: 'scheduled' | 'completed' | 'cancelled' | 'no-show';
+  meetingUrl?: string;
+  attendees: string[];
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+  lead?: {
+    id: string;
+    name?: string;
+    email: string;
+    company?: string;
+    classification?: 'hot' | 'warm' | 'cold' | 'unqualified';
+  };
 }
 
 export function useCalendar() {
@@ -58,7 +69,7 @@ export function useCalendar() {
   ) => {
     try {
       setLoading(true);
-      const response = await fetch('/api/calendar/schedule', {
+      const response = await fetch('/api/meetings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -93,17 +104,18 @@ export function useCalendar() {
       if (startDate) params.append('startDate', startDate.toISOString());
       if (endDate) params.append('endDate', endDate.toISOString());
 
-      const response = await fetch(`/api/calendar/meetings?${params}`);
+      const response = await fetch(`/api/meetings?${params}`);
       
       if (!response.ok) {
         throw new Error('Failed to fetch meetings');
       }
 
       const data = await response.json();
-      const formattedMeetings = data.meetings.map((meeting: any) => ({
+      const formattedMeetings = data.data.map((meeting: any) => ({
         ...meeting,
-        start: new Date(meeting.start),
-        end: new Date(meeting.end),
+        scheduledAt: new Date(meeting.scheduledAt),
+        createdAt: new Date(meeting.createdAt),
+        updatedAt: new Date(meeting.updatedAt),
       }));
       
       setMeetings(formattedMeetings);
@@ -120,10 +132,10 @@ export function useCalendar() {
     status: 'scheduled' | 'completed' | 'cancelled' | 'no-show'
   ) => {
     try {
-      const response = await fetch('/api/calendar/meetings', {
-        method: 'PATCH',
+      const response = await fetch(`/api/meetings/${meetingId}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ meetingId, status }),
+        body: JSON.stringify({ status }),
       });
 
       if (!response.ok) {

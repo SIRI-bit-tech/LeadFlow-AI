@@ -6,7 +6,7 @@ import { sendEmail, emailTemplates } from '@/lib/email';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth.api.getSession({ headers: request.headers });
@@ -23,7 +23,7 @@ export async function POST(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    const meetingId = params.id;
+    const { id: meetingId } = await params;
     const body = await request.json();
     const { scheduledAt, reason } = body;
 

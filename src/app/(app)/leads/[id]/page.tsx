@@ -47,10 +47,6 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
   };
   const [activeTab, setActiveTab] = useState<'overview' | 'conversation' | 'activity'>('overview');
 
-  const handleScoreUpdate = (newScore: number) => {
-    setLead((prev: any) => ({ ...prev, score: newScore }));
-  };
-
   const getInitials = (name?: string) => {
     if (!name) return lead?.email?.charAt(0).toUpperCase() || 'U';
     return name.split(' ').map(n => n.charAt(0)).join('').toUpperCase();
@@ -349,15 +345,28 @@ export default function LeadDetailPage({ params }: { params: Promise<{ id: strin
           </>
         )}
 
-        {activeTab === 'conversation' && (
+        {activeTab === 'conversation' && lead.conversation && (
           <div className="lg:col-span-3">
             <ChatInterface
-              leadId={lead.id}
-              conversationId={lead.conversation?.id || ''}
-              leadName={lead.name}
-              leadScore={lead.score}
-              onScoreUpdate={handleScoreUpdate}
+              conversation={{
+                ...lead.conversation,
+                lead: lead,
+                messageCount: lead.conversation.messages?.length || 0,
+                lastMessage: lead.conversation.messages?.[lead.conversation.messages.length - 1]
+              }}
             />
+          </div>
+        )}
+
+        {activeTab === 'conversation' && !lead.conversation && (
+          <div className="lg:col-span-3">
+            <Card>
+              <CardContent className="text-center py-12">
+                <MessageSquare className="w-12 h-12 mx-auto text-gray-300 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No conversation yet</h3>
+                <p className="text-gray-500">This lead hasn't started a conversation yet.</p>
+              </CardContent>
+            </Card>
           </div>
         )}
 
